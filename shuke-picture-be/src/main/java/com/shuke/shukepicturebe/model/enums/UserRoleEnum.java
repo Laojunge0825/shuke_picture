@@ -1,9 +1,8 @@
 package com.shuke.shukepicturebe.model.enums;
 
+import cn.hutool.core.util.ObjUtil;
 import lombok.Getter;
 
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * @Description: 用户权限枚举类
@@ -12,32 +11,34 @@ import java.util.Map;
  */
 @Getter
 public enum UserRoleEnum {
-    USER(0,"user"),
-    ADMIN(1,"admin")
-    ;
 
-
-    private final  Integer value;
+    USER("用户", "user"),
+    ADMIN("管理员", "admin");
 
     private final String text;
 
-    UserRoleEnum(Integer value, String text) {
-        this.value = value;
-        this.text = text;
-    }
+    private final String value;
 
-    private static final Map<Integer, String> valueTextMap = new HashMap<>();
+    UserRoleEnum(String text, String value) {
+        this.text = text;
+        this.value = value;
+    }
 
     /**
-     *   将所有的枚举值存到Map中，只在类加载的时候执行一次就行，之后可以直接通过value获取text的值
+     * 根据 value 获取枚举
+     *
+     * @param value 枚举值的value
+     * @return 枚举值
      */
-    static {
-        for (UserStatusEnum status : UserStatusEnum.values()) {
-            valueTextMap.put(status.getValue(), status.getText());
+    public static UserRoleEnum getEnumByValue(String value) {
+        if (ObjUtil.isEmpty(value)) {
+            return null;
         }
-    }
-
-    public static String getTextByValue(Integer value) {
-        return valueTextMap.get(value);
+        for (UserRoleEnum anEnum : UserRoleEnum.values()) {
+            if (anEnum.value.equals(value)) {
+                return anEnum;
+            }
+        }
+        return null;
     }
 }

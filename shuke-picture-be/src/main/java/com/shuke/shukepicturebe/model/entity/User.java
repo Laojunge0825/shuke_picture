@@ -50,9 +50,9 @@ public class User implements Serializable {
     private String userAvatar;
 
     /**
-     * 用户权限 0-普通用户 1-管理员
+     * 用户权限 user-普通用户 admin-管理员
      */
-    private Integer userRole;
+    private String userRole;
 
     /**
      * 用户状态 0 正常  ， 1 封禁
