@@ -16,11 +16,11 @@ spring:
 mybatis-plus:
   configuration:
     # 不会将下划线 转换为 驼峰命名发  如：user_id  不会转换成  userId
-    map-underscore-to-camel-case: false
+    map-underscore-to-camel-case: true
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
   global-config:
     db-config:
-      logic-delete-field: isDelete
+      logic-delete-field: is_delete
       logic-delete-value: 1
       logic-not-delete-value: 0
 
