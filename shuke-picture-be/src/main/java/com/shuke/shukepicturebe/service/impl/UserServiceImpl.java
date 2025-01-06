@@ -1,14 +1,25 @@
 package com.shuke.shukepicturebe.service.impl;
 
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 
+import com.shuke.shukepicturebe.common.BaseResponse;
+import com.shuke.shukepicturebe.common.ResultUtils;
 import com.shuke.shukepicturebe.exception.BusinessException;
 import com.shuke.shukepicturebe.exception.ErrorCode;
+import com.shuke.shukepicturebe.exception.ThrowUtils;
+import com.shuke.shukepicturebe.model.dto.UserAddDTO;
+import com.shuke.shukepicturebe.model.dto.UserQueryDTO;
+import com.shuke.shukepicturebe.model.dto.UserUpdateDTO;
 import com.shuke.shukepicturebe.model.entity.User;
 import com.shuke.shukepicturebe.model.enums.UserRoleEnum;
+import com.shuke.shukepicturebe.model.enums.UserStatusEnum;
 import com.shuke.shukepicturebe.model.vo.UserLoginVO;
+import com.shuke.shukepicturebe.model.vo.UserVO;
 import com.shuke.shukepicturebe.service.UserService;
 import com.shuke.shukepicturebe.mapper.UserMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +28,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.shuke.shukepicturebe.constant.UserConstant.USER_LOGIN_STATE;
 
@@ -119,8 +133,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         User user = this.baseMapper.selectOne(queryWrapper);
         // 用户不存在
         if (user == null) {
-            log.info("user login failed, userAccount cannot match userPassword");
+            log.info("登录失败，用户不存在或密码错误 ");
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户不存在或密码错误");
+        }
+        // 用户账号被封禁
+        if (user.getUserStatus().equals(UserStatusEnum.BANNED.getValue())) {
+            log.info("登录失败，用户账号被封禁  ");
+            throw new BusinessException(ErrorCode.FORBIDDEN_ERROR, "用户账号被封禁");
         }
         // 3. 记录用户的登录态
         request.getSession().setAttribute(USER_LOGIN_STATE, user);
@@ -128,7 +147,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     }
 
     /**
-     * 对接收的用户信息进行脱敏
+     * 对当前登录的用户信息进行脱敏
      * @param user
      * @return
      */
@@ -174,6 +193,140 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         // 移除登录态
         request.getSession().removeAttribute(USER_LOGIN_STATE);
         return true;
+    }
+
+    /**
+     * 对单个用户信息脱敏
+     * @param user
+     * @return
+     */
+    @Override
+    public UserVO getUserVo(User user) {
+        if( user == null){
+            return null;
+        }
+        UserVO userVO = new UserVO();
+        BeanUtils.copyProperties(user,userVO);
+        return userVO;
+    }
+
+    /**
+     * 对多个用户信息脱敏
+     * @param uList
+     * @return
+     */
+    @Override
+    public List<UserVO> getUserVoList(List<User> uList) {
+        if (CollUtil.isEmpty(uList)) {
+            return new ArrayList<>();
+        }
+        return uList.stream().map(this::getUserVo).collect(Collectors.toList());
+    }
+
+    /**
+     * 新增用户
+     * @param userAddDTO
+     * @return
+     */
+    @Override
+    public BaseResponse<Long> addUser(UserAddDTO userAddDTO) {
+        User user = new User();
+        BeanUtils.copyProperties(userAddDTO, user);
+        // 默认密码 12345678
+        final String DEFAULT_PASSWORD = "12345678";
+        String encryptPassword = this.getEncryptPassword(DEFAULT_PASSWORD);
+        user.setUserPassword(encryptPassword);
+        user.setEditTime(new Date());
+        boolean result = this.save(user);
+        ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
+        return ResultUtils.success(user.getId());
+    }
+
+    /**
+     * 删除用户
+     * @param id
+     * @return
+     */
+    @Override
+    public BaseResponse<Boolean> deleteUser(long id) {
+        boolean result = this.removeById(id);
+        return ResultUtils.success(result);
+    }
+
+    /**
+     * 更新用户
+     * @param userUpdateDTO
+     * @return
+     */
+    @Override
+    public BaseResponse<Boolean> updateUser(UserUpdateDTO userUpdateDTO) {
+        User user = new User();
+        BeanUtils.copyProperties(userUpdateDTO, user);
+        user.setEditTime(new Date());
+        boolean result = this.updateById(user);
+        ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
+        return ResultUtils.success(true);
+    }
+
+    /**
+     * 分页查询用户信息
+     * @param userQueryDTO
+     * @return
+     */
+    @Override
+    public BaseResponse<Page<UserVO>> listUserVoByPage(UserQueryDTO userQueryDTO) {
+        long current = userQueryDTO.getCurrent();
+        long pageSize = userQueryDTO.getPageSize();
+        Page<User> userPage = this.page(new Page<>(current, pageSize),
+                this.getQueryWrapper(userQueryDTO));
+        Page<UserVO> userVOPage = new Page<>(current, pageSize, userPage.getTotal());
+        List<UserVO> userVOList = this.getUserVoList(userPage.getRecords());
+        userVOPage.setRecords(userVOList);
+        return ResultUtils.success(userVOPage);
+    }
+
+    /**
+     * 根据id查询用户信息
+     * @param id
+     * @return
+     */
+    @Override
+    public BaseResponse<User> getUserById(long id) {
+        User user = this.getById(id);
+        ThrowUtils.throwIf(user == null, ErrorCode.NOT_FOUND_ERROR);
+        return ResultUtils.success(user);
+    }
+
+    /**
+     * 根据ID查询脱敏用户信息
+     * @param id
+     * @return
+     */
+    @Override
+    public BaseResponse<UserVO> getUserVoById(long id) {
+        User user = this.getById(id);
+        ThrowUtils.throwIf(user == null, ErrorCode.NOT_FOUND_ERROR);
+
+        return ResultUtils.success(this.getUserVo(user));
+    }
+
+    @Override
+    public QueryWrapper<User> getQueryWrapper(UserQueryDTO userQueryDTO) {
+        Long id = userQueryDTO.getId();
+        String userAccount = userQueryDTO.getUserAccount();
+        String userName = userQueryDTO.getUserName();
+        String userProfile = userQueryDTO.getUserProfile();
+        String userRole = userQueryDTO.getUserRole();
+        String sortField = userQueryDTO.getSortField();
+        String sortOrder = userQueryDTO.getSortOrder();
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+//        queryWrapper.eq(ObjUtil.isNotNull(id), "id", id);
+        queryWrapper.eq(StrUtil.isNotBlank(userRole), "user_role", userRole);
+        queryWrapper.like(StrUtil.isNotBlank(userAccount), "user_account", userAccount);
+        queryWrapper.like(StrUtil.isNotBlank(userName), "user_name", userName);
+        queryWrapper.like(StrUtil.isNotBlank(userProfile), "user_profile", userProfile);
+        queryWrapper.orderBy(StrUtil.isNotEmpty(sortField), sortOrder.equals("ascend"), sortField);
+        return queryWrapper;
     }
 
 }
