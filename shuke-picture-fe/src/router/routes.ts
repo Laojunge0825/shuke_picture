@@ -1,22 +1,32 @@
 import { h } from 'vue'
 import { HomeOutlined } from '@ant-design/icons-vue'
-import Home from '@/views/HomeView.vue'
+import HomePege from '@/pages/HomePage.vue'
+import UserLoginPage from '@/pages/user/UserLoginPage.vue'
+import UserRegisterPage from '@/pages/user/UserRegisterPage.vue'
+import UserManagePage from '@/pages/admin/UserManagePage.vue'
 
 export const routes = [
   {
     path: '/',
     name: '主页',
-    component: Home,
+    component: HomePege,
     meta: {
       icon: () => h(HomeOutlined),
     },
   },
   {
-    path: '/about',
-    name: '关于',
-    // route level code-splitting
-    // this generates a separate chunk (About.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () => import('../views/HomeView.vue'),
+    path: '/user/login',
+    name: '用户登录',
+    component: UserLoginPage,
+  },
+  {
+    path: '/user/register',
+    name: '用户注册',
+    component: UserRegisterPage,
+  },
+  {
+    path: '/admin/userManage',
+    name: '用户管理',
+    component: UserManagePage,
   },
 ]

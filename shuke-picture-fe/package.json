@@ -11,11 +11,12 @@
     "type-check": "vue-tsc --build",
     "lint": "eslint . --fix",
     "format": "prettier --write src/",
-    "openapi":"node openapi.config.js"
+    "openapi": "node openapi.config.js"
   },
   "dependencies": {
     "ant-design-vue": "^4.2.6",
     "axios": "^1.7.9",
+    "dayjs": "^1.11.13",
     "pinia": "^2.3.0",
     "vue": "^3.5.13",
     "vue-router": "^4.5.0"

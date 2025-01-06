@@ -1,20 +1,27 @@
 import { defineStore } from "pinia";
-import { reactive } from "vue";
-
-export const useLoginUserStore = defineStore("loginUser", () => {
-  const loginUser = reactive<any>({
+import { ref } from "vue";
+import { getLoginUserUsingGet }from "@/api/userController.ts"
+export const useLoginUserStore = defineStore('loginUser', () => {
+  const loginUser = ref<API.UserLoginVO>({
     userName: "未登录",
   });
 
+  /**
+   * 获取登录用户信息
+   */
   async function fetchLoginUser() {
-    // 模拟用户登录
-    setTimeout(()=>{
-      loginUser.value = {userName:"路人甲", id:"1"}
-    },3000)
+    const res = await getLoginUserUsingGet()
+    if (res.data.code === 0 && res.data.data) {
+      loginUser.value = res.data.data
+    }
   }
 
+  /**
+   *
+   * @param newLoginUser 设置登录用户
+   */
   function setLoginUser(newLoginUser: any) {
-    loginUser.value = newLoginUser;
+      loginUser.value = newLoginUser;
   }
 
   return { loginUser, setLoginUser, fetchLoginUser };
