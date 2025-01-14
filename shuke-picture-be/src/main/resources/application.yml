@@ -34,3 +34,11 @@ knife4j:
       default:
         api-rule: package
         api-rule-resources: com.shuke.shukepicturebe.controller
+
+# minio 相关配置
+minio:
+  endpoint: http://192.168.147.128:9000
+  accessKey: NX1fILq4uwJtMcVQBwZ8
+  secretKey: G90IaqsJrHYcWzCsAwlccuQC22t2SBgG5WXmJ1g5
+  bucket:
+    name: shuke-pic-bucket
