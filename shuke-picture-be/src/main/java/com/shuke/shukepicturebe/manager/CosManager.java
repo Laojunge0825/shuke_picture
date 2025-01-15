@@ -5,6 +5,7 @@ import com.qcloud.cos.model.COSObject;
 import com.qcloud.cos.model.GetObjectRequest;
 import com.qcloud.cos.model.PutObjectRequest;
 import com.qcloud.cos.model.PutObjectResult;
+import com.qcloud.cos.model.ciModel.persistence.PicOperations;
 import com.shuke.shukepicturebe.config.CosClientConfig;
 import org.springframework.stereotype.Component;
 
@@ -13,7 +14,7 @@ import java.io.File;
 
 /**
  * @ClassName: CosManager
- * @Description:  文件上传下载的通用方法
+ * @Description:  文件上传下载的通用方法 与业务无关
  * @author: 舒克、舒克
  * @Date: 2025/1/14 14:33
  */
@@ -48,6 +49,27 @@ public class CosManager {
         GetObjectRequest getObjectRequest = new GetObjectRequest(cosClientConfig.getBucket(), key);
         return cosClient.getObject(getObjectRequest);
     }
+
+
+    /**
+     * 上传对象（附带图片信息）
+     *
+     * @param key  唯一键
+     * @param file 文件
+     */
+    public PutObjectResult putPictureObject(String key, File file) {
+        PutObjectRequest putObjectRequest = new PutObjectRequest(cosClientConfig.getBucket(), key,
+                file);
+        // 对图片进行处理（获取基本信息也被视作为一种处理）
+        PicOperations picOperations = new PicOperations();
+        // 1 表示返回原图信息
+        picOperations.setIsPicInfo(1);
+        // 构造处理参数
+        putObjectRequest.setPicOperations(picOperations);
+        return cosClient.putObject(putObjectRequest);
+    }
+
+
 
 
 }

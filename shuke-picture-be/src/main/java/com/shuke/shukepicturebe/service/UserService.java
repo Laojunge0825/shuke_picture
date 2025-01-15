@@ -61,7 +61,7 @@ public interface UserService extends IService<User> {
      * @param request
      * @return
      */
-    UserLoginVO getLoginUser (HttpServletRequest request);
+    User getLoginUser (HttpServletRequest request);
 
 
     /**
@@ -135,6 +135,11 @@ public interface UserService extends IService<User> {
     QueryWrapper<User> getQueryWrapper(UserQueryDTO userQueryDTO);
 
 
-
+    /**
+     * 判断用户是否为管理员
+     * @param user
+     * @return
+     */
+    boolean isAdmin(User user);
 
 }

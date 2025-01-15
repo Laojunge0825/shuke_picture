@@ -166,14 +166,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
      * @return
      */
     @Override
-    public UserLoginVO getLoginUser(HttpServletRequest request) {
+    public User getLoginUser(HttpServletRequest request) {
         // 判断是否已登录
         Object obj = request.getSession().getAttribute(USER_LOGIN_STATE);
         User user = (User) obj;
         if(user == null || user.getId() == null){
             throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
         }
-        return this.getLoginUserVo(user);
+        return user;
     }
 
     /**
@@ -326,6 +326,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         queryWrapper.like(StrUtil.isNotBlank(userProfile), "user_profile", userProfile);
         queryWrapper.orderBy(StrUtil.isNotEmpty(sortField), sortOrder.equals("ascend"), sortField);
         return queryWrapper;
+    }
+
+    /**
+     * 判断是否为管理员
+     * @param user
+     * @return
+     */
+    @Override
+    public boolean isAdmin(User user) {
+        return user != null && UserRoleEnum.ADMIN.getValue().equals(user.getUserRole());
     }
 
 }

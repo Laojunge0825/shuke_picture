@@ -1,14 +1,13 @@
 package com.shuke.shukepicturebe.aop;
 
 import com.shuke.shukepicturebe.annotation.AuthCheck;
-import com.shuke.shukepicturebe.constant.UserConstant;
 import com.shuke.shukepicturebe.exception.BusinessException;
 import com.shuke.shukepicturebe.exception.ErrorCode;
 import com.shuke.shukepicturebe.model.entity.User;
 import com.shuke.shukepicturebe.model.enums.UserRoleEnum;
-import com.shuke.shukepicturebe.model.vo.UserLoginVO;
 import com.shuke.shukepicturebe.service.UserService;
 import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestAttributes;
@@ -31,12 +30,19 @@ public class AuthInterceptor {
     @Resource
     UserService userService;
 
+    /**
+     * 执行拦截
+     *
+     * @param joinPoint 切入点
+     * @param authCheck 权限校验注解
+     */
+    @Around("@annotation(authCheck)")
     public Object doInterceptor(ProceedingJoinPoint joinPoint, AuthCheck authCheck) throws Throwable {
         String mustRole = authCheck.mustRole();
         RequestAttributes attributes = RequestContextHolder.currentRequestAttributes();
         HttpServletRequest request = ((ServletRequestAttributes)attributes).getRequest();
         // 获取当前登录用户
-        UserLoginVO user = userService.getLoginUser(request);
+        User user = userService.getLoginUser(request);
         // 获取当前登录用户权限
         UserRoleEnum userRoleEnum = UserRoleEnum.getEnumByValue(user.getUserRole());
         UserRoleEnum mustRoleEnum = UserRoleEnum.getEnumByValue(mustRole);
@@ -49,7 +55,7 @@ public class AuthInterceptor {
             throw new  BusinessException(ErrorCode.NOT_AUTH_ERROR);
         }
         if(UserRoleEnum.ADMIN.equals(mustRoleEnum) && !UserRoleEnum.ADMIN.equals(userRoleEnum)){
-            throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
+            throw new BusinessException(ErrorCode.NOT_AUTH_ERROR);
         }
 
         return  joinPoint.proceed();

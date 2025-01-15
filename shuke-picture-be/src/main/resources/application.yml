@@ -11,6 +11,10 @@ spring:
     url: jdbc:mysql://localhost:3306/shuke_picture
     username: root
     password: root
+  # 文件上传
+  servlet:
+    multipart:
+      max-file-size: 10MB
 
 # mybatis-plus 相关配置
 mybatis-plus:
