@@ -22,7 +22,7 @@ public class PictureEditDTO implements Serializable {
     /**
      * 图片名称
      */
-    private String name;
+    private String picName;
 
     /**
      * 简介
