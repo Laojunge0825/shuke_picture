@@ -87,7 +87,6 @@ const doMenuClick =({ key } : { key : string }) => {
 // 用户注销
 const doLogout = async () => {
   const res = await userLogOutUsingGet()
-  console.log(res)
   if (res.data.code === 0) {
     loginUserStore.setLoginUser({
       userName: '未登录',
