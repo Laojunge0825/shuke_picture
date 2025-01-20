@@ -3,7 +3,7 @@
     <a-row :gutter="[16, 16]">
       <!-- 图片展示区 -->
       <a-col :sm="24" :md="16" :xl="18">
-        <a-card title="图片预览">
+        <a-card title="图片预览" style="margin-bottom: 16px;">
           <a-image
             style="max-height: 600px; object-fit: contain"
             :src="picture.url"
@@ -102,7 +102,7 @@ const canEdit = computed(() => {
     return false
   }
   // 仅本人或管理员可编辑
-  const user = picture.value.user || {}
+  const user = picture.value.userVO || {}
   return loginUser.id === user.id || loginUser.userRole === 'admin'
 })
 
