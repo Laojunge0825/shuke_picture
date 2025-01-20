@@ -57,6 +57,16 @@ public class PictureController {
         return ResultUtils.success(pictureVO);
     }
 
+    @PostMapping("/upload/url")
+    public BaseResponse<PictureVO> uploadPictureByUrl(
+            @RequestBody PictureUploadDTO pictureUploadDTO,
+            HttpServletRequest request) {
+        User loginUser = userService.getLoginUser(request);
+        String fileUrl = pictureUploadDTO.getFileUrl();
+        PictureVO pictureVO = pictureService.uploadPicture(fileUrl, pictureUploadDTO, loginUser);
+        return ResultUtils.success(pictureVO);
+    }
+
     /**
      * 删除图片  
      */

@@ -1,6 +1,7 @@
 package com.shuke.shukepicturebe.model.dto.file;
 
 import lombok.Data;
+import lombok.experimental.Accessors;
 
 /**
  * @ClassName: UploadPictureResult
@@ -9,6 +10,10 @@ import lombok.Data;
  * @Date: 2025/1/14 10:21
  */
 @Data
+/**
+ 使用该注解后 set方法返回this 对象，而不是void 方便使用方法链 设置对象的属性。
+ */
+@Accessors(chain = true)
 public class UploadPictureResult {
     /**
      * 图片 url
