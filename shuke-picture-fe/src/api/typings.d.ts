@@ -176,6 +176,7 @@ declare namespace API {
     id?: number
     reviewMessage?: string
     reviewStatus?: number
+    reviewerId?: number
   }
 
   type PictureTagCategory = {
@@ -189,6 +190,11 @@ declare namespace API {
     introduction?: string
     picName?: string
     tags?: string[]
+  }
+
+  type PictureUploadDTO = {
+    id?: number
+    url?: string
   }
 
   type PictureVO = {
@@ -217,6 +223,7 @@ declare namespace API {
 
   type uploadPictureUsingPOSTParams = {
     id?: number
+    url?: string
   }
 
   type User = {

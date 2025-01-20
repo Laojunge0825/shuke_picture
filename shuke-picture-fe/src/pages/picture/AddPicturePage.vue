@@ -3,7 +3,17 @@
     <h2 style="margin-bottom: 16px">
       {{ route.query?.id ? '修改图片' : '创建图片' }}
     </h2>
-    <PictureUpload :picture="picture" :onSuccess="onSuccess" />
+    <!-- 选择上传方式 -->
+    <a-tabs v-model:activeKey="uploadType">
+      <a-tab-pane key="file" tab="文件上传">
+        <!-- 图片上传组件 -->
+        <PictureUpload :picture="picture" :spaceId="spaceId" :onSuccess="onSuccess" />
+      </a-tab-pane>
+      <a-tab-pane key="url" tab="URL 上传" force-render>
+        <!-- URL 图片上传组件 -->
+        <UrlPictureUpload :picture="picture" :spaceId="spaceId" :onSuccess="onSuccess" />
+      </a-tab-pane>
+    </a-tabs>
     <a-form layout="vertical" :model="pictureForm" @finish="handleSubmit">
       <a-form-item label="名称" name="picName">
         <a-input v-model:value="pictureForm.picName" placeholder="请输入名称" />
@@ -44,6 +54,7 @@
 import { reactive , ref ,onMounted } from "vue"
 import { message } from 'ant-design-vue'
 import PictureUpload from '@/components/PictureUpload.vue'
+import UrlPictureUpload from '@/components/UrlPictureUpload.vue'
 import { listPictureTagCategoryUsingGet , editPictureUsingPost , getPictureVoByIdUsingGet } from '@/api/pictureController.ts'
 import { useRouter , useRoute } from 'vue-router'
 
@@ -61,7 +72,7 @@ const route = useRoute()
 // 获取标签和分类选项
 const getTagCategoryOptions = async () => {
   const res = await listPictureTagCategoryUsingGet()
-  console.log(res.data)
+
   if (res.data.code === 0 && res.data.data) {
     // 转换成下拉选项组件接受的格式
     tagOptions.value = (res.data.data.tagList ?? []).map((data: string) => {
