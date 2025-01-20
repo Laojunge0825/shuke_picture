@@ -10,12 +10,10 @@ import com.shuke.shukepicturebe.constant.UserConstant;
 import com.shuke.shukepicturebe.exception.BusinessException;
 import com.shuke.shukepicturebe.exception.ErrorCode;
 import com.shuke.shukepicturebe.exception.ThrowUtils;
-import com.shuke.shukepicturebe.model.dto.picture.PictureEditDTO;
-import com.shuke.shukepicturebe.model.dto.picture.PictureQueryDTO;
-import com.shuke.shukepicturebe.model.dto.picture.PictureUpdateDTO;
-import com.shuke.shukepicturebe.model.dto.picture.PictureUploadDTO;
+import com.shuke.shukepicturebe.model.dto.picture.*;
 import com.shuke.shukepicturebe.model.entity.Picture;
 import com.shuke.shukepicturebe.model.entity.User;
+import com.shuke.shukepicturebe.model.enums.PictureReviewStatusEnum;
 import com.shuke.shukepicturebe.model.vo.PictureTagCategory;
 import com.shuke.shukepicturebe.model.vo.PictureVO;
 import com.shuke.shukepicturebe.service.PictureService;
@@ -50,7 +48,6 @@ public class PictureController {
      * 上传图片（可重新上传）
      */
     @PostMapping("/upload")
-    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<PictureVO> uploadPicture(
             @RequestPart("file") MultipartFile multipartFile,
             PictureUploadDTO pictureUploadDTO,
@@ -161,6 +158,8 @@ public class PictureController {
         long size = pictureQueryDTO.getPageSize();
         // 限制爬虫  
         ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
+        // 普通用户只能查看已经过审的图片
+        pictureQueryDTO.setReviewStatus(PictureReviewStatusEnum.PASS.getValue());
         // 查询数据库  
         Page<Picture> picturePage = pictureService.page(new Page<>(current, size),
                 pictureService.getQueryWrapper(pictureQueryDTO));
@@ -214,6 +213,24 @@ public class PictureController {
         pictureTagCategory.setCategoryList(categoryList);
         return ResultUtils.success(pictureTagCategory);
     }
+
+
+    /**
+     * 图片审核
+     * @param pictureReviewDTO
+     * @param request
+     * @return
+     */
+    @PostMapping("/review")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    public BaseResponse<Boolean> doPictureReview(@RequestBody PictureReviewDTO pictureReviewDTO,
+                                                 HttpServletRequest request) {
+        ThrowUtils.throwIf(pictureReviewDTO == null, ErrorCode.PARAMS_ERROR);
+        User loginUser = userService.getLoginUser(request);
+        pictureService.doPictureReview(pictureReviewDTO, loginUser);
+        return ResultUtils.success(true);
+    }
+
 
 
 }

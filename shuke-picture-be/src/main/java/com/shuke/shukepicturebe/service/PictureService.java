@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.shuke.shukepicturebe.model.dto.picture.PictureQueryDTO;
+import com.shuke.shukepicturebe.model.dto.picture.PictureReviewDTO;
 import com.shuke.shukepicturebe.model.dto.picture.PictureUploadDTO;
 import com.shuke.shukepicturebe.model.entity.Picture;
 import com.shuke.shukepicturebe.model.entity.User;
@@ -57,5 +58,24 @@ public interface PictureService extends IService<Picture> {
      */
     void validPicture(Picture picture);
 
+    /**
+     * 将请求条件转成QuerryWrapper的形式
+     * @param pictureQueryDTO
+     * @return
+     */
     QueryWrapper<Picture> getQueryWrapper(PictureQueryDTO pictureQueryDTO);
+
+    /**
+     * 图片审核
+     * @param pictureReviewDTO
+     * @param loginUser
+     */
+    void doPictureReview(PictureReviewDTO pictureReviewDTO, User loginUser);
+
+    /**
+     * 补充审核参数
+     * @param picture
+     * @param loginUser
+     */
+    void fillReviewParams(Picture picture , User loginUser);
 }
