@@ -57,6 +57,12 @@ public class PictureController {
         return ResultUtils.success(pictureVO);
     }
 
+    /**
+     * 根据Url 上传图片
+     * @param pictureUploadDTO
+     * @param request
+     * @return
+     */
     @PostMapping("/upload/url")
     public BaseResponse<PictureVO> uploadPictureByUrl(
             @RequestBody PictureUploadDTO pictureUploadDTO,
@@ -65,6 +71,23 @@ public class PictureController {
         String fileUrl = pictureUploadDTO.getFileUrl();
         PictureVO pictureVO = pictureService.uploadPicture(fileUrl, pictureUploadDTO, loginUser);
         return ResultUtils.success(pictureVO);
+    }
+
+    /**
+     * 批量抓取图片   仅管理员可用
+     * @param pictureUploadByBatchDTO
+     * @param request
+     * @return
+     */
+    @PostMapping("/upload/batch")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    public BaseResponse<Integer> uploadPictureByBatch(
+            @RequestBody PictureUploadByBatchDTO pictureUploadByBatchDTO,
+            HttpServletRequest request){
+        ThrowUtils.throwIf(pictureUploadByBatchDTO == null , ErrorCode.PARAMS_ERROR);
+        User loginUser = userService.getLoginUser(request);
+        int uploadCount = pictureService.uploadPictureByBatch(pictureUploadByBatchDTO,loginUser);
+        return ResultUtils.success(uploadCount);
     }
 
     /**

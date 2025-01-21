@@ -4,9 +4,12 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.google.gson.JsonObject;
 import com.shuke.shukepicturebe.exception.BusinessException;
 import com.shuke.shukepicturebe.exception.ErrorCode;
 import com.shuke.shukepicturebe.exception.ThrowUtils;
@@ -16,6 +19,7 @@ import com.shuke.shukepicturebe.manager.upload.PictureUploadTemplate;
 import com.shuke.shukepicturebe.manager.upload.UrlPictureUpload;
 import com.shuke.shukepicturebe.model.dto.picture.PictureQueryDTO;
 import com.shuke.shukepicturebe.model.dto.picture.PictureReviewDTO;
+import com.shuke.shukepicturebe.model.dto.picture.PictureUploadByBatchDTO;
 import com.shuke.shukepicturebe.model.dto.picture.PictureUploadDTO;
 import com.shuke.shukepicturebe.model.dto.file.UploadPictureResult;
 import com.shuke.shukepicturebe.model.entity.Picture;
@@ -26,12 +30,18 @@ import com.shuke.shukepicturebe.model.vo.UserVO;
 import com.shuke.shukepicturebe.service.PictureService;
 import com.shuke.shukepicturebe.mapper.PictureMapper;
 import com.shuke.shukepicturebe.service.UserService;
+import lombok.extern.slf4j.Slf4j;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -43,6 +53,7 @@ import java.util.stream.Collectors;
 * @description 针对表【picture(图片)】的数据库操作Service实现
 * @createDate 2025-01-14 09:41:40
 */
+@Slf4j
 @Service
 public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
     implements PictureService{
@@ -96,7 +107,11 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         // 构造要入库的图片信息
         Picture picture = new Picture();
         picture.setUrl(uploadPictureResult.getUrl());
-        picture.setPicName(uploadPictureResult.getPicName());
+        String picName = uploadPictureResult.getPicName();
+        if(ObjUtil.isNotNull(pictureUploadDTO) && StrUtil.isNotBlank(pictureUploadDTO.getPicName())){
+            picName = pictureUploadDTO.getPicName();
+        }
+        picture.setPicName(picName);
         picture.setPicSize(uploadPictureResult.getPicSize());
         picture.setPicWidth(uploadPictureResult.getPicWidth());
         picture.setPicHeight(uploadPictureResult.getPicHeight());
@@ -292,6 +307,78 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
             // 非管理员，创建或编辑都要改为待审核
             picture.setReviewStatus(PictureReviewStatusEnum.REVIEWING.getValue());
         }
+    }
+
+    /**
+     * 批量抓取上传图片
+     * @param pictureUploadByBatchDTO
+     * @param loginUser
+     * @return
+     */
+    @Override
+    public Integer uploadPictureByBatch(PictureUploadByBatchDTO pictureUploadByBatchDTO, User loginUser) {
+        String searchText = pictureUploadByBatchDTO.getSearchText();
+        String namePrefix = pictureUploadByBatchDTO.getNamePrefix();
+        if(StrUtil.isBlank(namePrefix)){
+            namePrefix = searchText;
+        }
+        // 格式化数量
+        Integer count = pictureUploadByBatchDTO.getCount();
+        ThrowUtils.throwIf(count > 30, ErrorCode.PARAMS_ERROR,"最多抓取30条");
+        // 要抓取的地址
+        // 获取图片数据的接口  https://cn.bing.com/images/async?q=%25s&mmasync=1
+        String fetchUrl = String.format("https://cn.bing.com/images/async?q=%s&mmasync=1" , searchText);
+
+        Document document;
+        try {
+            document = Jsoup.connect(fetchUrl).get();
+        } catch (IOException e) {
+            log.error("获取页面失败",e);
+            throw   new BusinessException(ErrorCode.OPERATION_ERROR,"获取页面失败");
+        }
+        Element div =document.getElementsByClass("dgControl").first();
+        if(ObjUtil.isNull(div)){
+            throw new BusinessException(ErrorCode.OPERATION_ERROR,"获取页面元素失败");
+        }
+
+        // img.ming 下面是处理过的图片 是缩略图  宽度都是474
+        // Elements imgElementList = div.select("img").addClass("ming");
+        //  原图在 a iusc  下面找
+        Elements imgElementList = div.select("a.iusc");
+        int uploadCount = 0;
+        for(Element imgElement : imgElementList){
+            // String fileUrl = imgElement.attr("src");
+            String dataM = imgElement.attr("m");
+            // 解析JSON字符串
+            JSONObject jsonObject = JSONUtil.parseObj(dataM);
+            String fileUrl = jsonObject.getStr("murl");
+            if(StrUtil.isBlank(fileUrl)){
+                log.info("当前链接为空，直接跳过：{}",fileUrl);
+                continue;
+            }
+            // 处理图片上传地址 ， 防止出现转义问题
+            int questionMarkIndex = fileUrl.indexOf("?");
+            if(questionMarkIndex > -1){
+                fileUrl = fileUrl.substring(0,questionMarkIndex);
+            }
+            //上传图片
+            PictureUploadDTO pictureUploadDTO = new PictureUploadDTO();
+            // 设置图片名称 序号连续增加
+            pictureUploadDTO.setPicName(namePrefix + (uploadCount+1));
+            try{
+                PictureVO pictureVO = this.uploadPicture(fileUrl,pictureUploadDTO,loginUser);
+                log.info("图片上传成功，id={}" , pictureVO.getId());
+                uploadCount++;
+            }catch (Exception e){
+                log.info("图片上传失败",e);
+                continue;
+            }
+            if(uploadCount >= count){
+                break;
+            }
+        }
+
+        return uploadCount;
     }
 
 
