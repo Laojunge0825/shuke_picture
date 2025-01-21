@@ -7,6 +7,7 @@ import UserManagePage from '@/pages/admin/UserManagePage.vue'
 import AddPicturePage from '@/pages/picture/AddPicturePage.vue'
 import PictureManagePage from '@/pages/admin/PictureManagePage.vue'
 import PictureDetailPage from '@/pages/picture/PictureDetailPage.vue'
+import AddPictureBatchPage from '@/pages/picture/AddPictureBatchPage.vue'
 export const routes = [
   {
     path: '/',
@@ -49,6 +50,11 @@ export const routes = [
     component: PictureDetailPage,
     // 允许将路由的参数作为组件的props传递给相应的组件
     props: true,
+  },
+  {
+    path: '/add_picture/batch',
+    name: '批量创建图片',
+    component: AddPictureBatchPage,
   }
 
 

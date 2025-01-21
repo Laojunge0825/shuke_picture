@@ -34,6 +34,14 @@
     <!-- 图片列表 -->
     <PictureList :dataList="dataList" :loading="loading" />
 
+    <!-- 分页 -->
+    <a-pagination
+      style="text-align: right"
+      v-model:current="searchParams.current"
+      v-model:pageSize="searchParams.pageSize"
+      :total="total"
+      @change="onPageChange"
+    />
   </div>
 
 </template>
@@ -57,7 +65,7 @@ const loading = ref(true)
 // 搜索条件
 const searchParams = reactive<API.PictureQueryDTO>({
   current: 1,
-  pageSize: 12,
+  pageSize: 10,
   sortField: 'create_time',
   sortOrder: 'descend',
 })
@@ -68,14 +76,15 @@ const pagination = computed(() => {
     current: searchParams.current ?? 1,
     pageSize: searchParams.pageSize ?? 10,
     total: total.value,
-    // 切换页号时，修改参数并获取数据
-    onChange: (page,pageSize) => {
-      searchParams.current = page
-      searchParams.pageSize = pageSize
-      fetchData()
-    }
   }
 })
+
+// 切换页号时，修改参数并获取数据
+const onPageChange = (page: number, pageSize: number) => {
+  searchParams.current = page;
+  searchParams.pageSize = pageSize;
+  fetchData();
+}
 
 /**
  *  获取数据

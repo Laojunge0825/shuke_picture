@@ -61,6 +61,9 @@ import { useRouter , useRoute } from 'vue-router'
 const picture = ref<API.PictureVO>()
 const pictureForm = reactive<API.PictureEditDTO>({})
 
+// 上传方式
+const uploadType  = ref<'file' | 'url'>('file')
+
 const categoryOptions = ref<string[]>([])
 const tagOptions = ref<string[]>([])
 
@@ -100,7 +103,6 @@ onMounted(() => {
 const onSuccess = (newPicture: API.PictureVO) => {
 
   picture.value = newPicture
-  console.log("newPicture:"+picture.value)
   pictureForm.picName = newPicture.picName
 }
 
