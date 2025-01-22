@@ -181,6 +181,7 @@ export async function uploadPictureByBatchUsingPost(
     headers: {
       'Content-Type': 'application/json',
     },
+    timeout:0,
     data: body,
     ...(options || {}),
   })
