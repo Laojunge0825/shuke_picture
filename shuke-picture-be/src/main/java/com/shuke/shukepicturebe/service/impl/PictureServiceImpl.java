@@ -13,6 +13,7 @@ import com.google.gson.JsonObject;
 import com.shuke.shukepicturebe.exception.BusinessException;
 import com.shuke.shukepicturebe.exception.ErrorCode;
 import com.shuke.shukepicturebe.exception.ThrowUtils;
+import com.shuke.shukepicturebe.manager.CosManager;
 import com.shuke.shukepicturebe.manager.FileManager;
 import com.shuke.shukepicturebe.manager.upload.FilePictureUpload;
 import com.shuke.shukepicturebe.manager.upload.PictureUploadTemplate;
@@ -36,6 +37,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.beans.BeanUtils;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -69,6 +71,9 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
 
     @Resource
     private UrlPictureUpload urlPictureUpload;
+
+    @Resource
+    private CosManager cosManager;
 
     /**
      * 图片上传
@@ -107,6 +112,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         // 构造要入库的图片信息
         Picture picture = new Picture();
         picture.setUrl(uploadPictureResult.getUrl());
+        picture.setThumbnailUrl(uploadPictureResult.getThumbnailUrl());
         String picName = uploadPictureResult.getPicName();
         if(ObjUtil.isNotNull(pictureUploadDTO) && StrUtil.isNotBlank(pictureUploadDTO.getPicName())){
             picName = pictureUploadDTO.getPicName();
@@ -379,6 +385,21 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         }
 
         return uploadCount;
+    }
+
+    @Async
+    @Override
+    public void clearPictureFile(Picture picture) {
+        // 判断该图片是否被多条记录使用
+        String pictureUrl = picture.getUrl();
+        long count = this.lambdaQuery().eq(Picture::getUrl,pictureUrl).count();
+
+        // 有不止一条记录用到了该图片  不清理
+        if( count > 1 ){
+            return;
+        }
+
+        cosManager.deleteObject(pictureUrl);
     }
 
 
