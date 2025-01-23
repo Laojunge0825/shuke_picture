@@ -4,10 +4,7 @@ package com.shuke.shukepicturebe.service;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.shuke.shukepicturebe.model.dto.picture.PictureQueryDTO;
-import com.shuke.shukepicturebe.model.dto.picture.PictureReviewDTO;
-import com.shuke.shukepicturebe.model.dto.picture.PictureUploadByBatchDTO;
-import com.shuke.shukepicturebe.model.dto.picture.PictureUploadDTO;
+import com.shuke.shukepicturebe.model.dto.picture.*;
 import com.shuke.shukepicturebe.model.entity.Picture;
 import com.shuke.shukepicturebe.model.entity.User;
 import com.shuke.shukepicturebe.model.vo.PictureVO;
@@ -91,9 +88,29 @@ public interface PictureService extends IService<Picture> {
     Integer uploadPictureByBatch(PictureUploadByBatchDTO pictureUploadByBatchDTO, User loginUser);
 
     /**
+     * 删除图片
+     * @param id
+     * @param loginUser
+     */
+    void deletePicture(long id,User loginUser);
+
+    /**
      * 删除对象
      * @param picture
      */
     void clearPictureFile(Picture picture);
 
+    /**
+     * 编辑图片
+     * @param pictureEditDTO
+     * @param loginUser
+     */
+    void editPicture(PictureEditDTO pictureEditDTO, User loginUser);
+
+    /**
+     * 空间权限校验
+     * @param loginUser
+     * @param picture
+     */
+    void checkPictureAuth(User loginUser,Picture picture);
 }
