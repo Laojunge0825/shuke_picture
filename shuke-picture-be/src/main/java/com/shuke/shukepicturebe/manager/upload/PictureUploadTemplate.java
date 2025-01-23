@@ -59,6 +59,8 @@ public abstract class PictureUploadTemplate {
 
             // 4. 上传图片到对象存储
             PutObjectResult putObjectResult = cosManager.putPictureObject(uploadPath, file);
+            // 上传完压缩图后  删除原图（如果下载要下载原图的话，就注释这一行）
+            cosManager.deleteObject(uploadPath);
             ImageInfo imageInfo = putObjectResult.getCiUploadResult().getOriginalInfo().getImageInfo();
 
             ProcessResults processResults = putObjectResult.getCiUploadResult().getProcessResults();

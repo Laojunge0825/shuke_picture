@@ -98,16 +98,11 @@ public class CosManager {
 
     /**
      * 删除对象
-     * @param url
+     * @param key
      */
-    public void deleteObject(String url){
-        // 数据库里面存的url包含了域名 实际上只需要传key值（存储路径）
-//        try {
-//            System.out.println(new URL(url).getPath());
-//        } catch (MalformedURLException e) {
-//            e.printStackTrace();
-//        }
-        String key = url.replace(cosClientConfig.getHost(),"");
+    public void deleteObject(String key){
+
+//        String key = url.replace(cosClientConfig.getHost(),"");
         cosClient.deleteObject(cosClientConfig.getBucket(),key);
     }
 

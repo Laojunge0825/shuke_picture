@@ -44,6 +44,8 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -392,14 +394,21 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
     public void clearPictureFile(Picture picture) {
         // 判断该图片是否被多条记录使用
         String pictureUrl = picture.getUrl();
-        long count = this.lambdaQuery().eq(Picture::getUrl,pictureUrl).count();
+        long count = this.lambdaQuery().eq(Picture::getUrl, pictureUrl).count();
 
         // 有不止一条记录用到了该图片  不清理
-        if( count > 1 ){
+        if (count > 1) {
             return;
         }
 
-        cosManager.deleteObject(pictureUrl);
+        // 数据库里面存的url包含了域名 实际上只需要传key值（存储路径）
+        String key = null;
+        try {
+            key = new URL(pictureUrl).getPath();
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+        cosManager.deleteObject(key);
     }
 
 
