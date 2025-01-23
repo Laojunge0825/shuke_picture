@@ -1,4 +1,4 @@
-package com.shuke.shukepicturebe.model.dto;
+package com.shuke.shukepicturebe.model.dto.user;
 
 import lombok.Data;
 
