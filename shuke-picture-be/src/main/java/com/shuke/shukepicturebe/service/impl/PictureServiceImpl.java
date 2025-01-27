@@ -165,11 +165,12 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         transactionTemplate.execute(status -> {
             boolean result = this.saveOrUpdate(picture);
             ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR, "图片上传失败");
+            // 公共空间没有spaceId
             if (finalSpaceId != null) {
                 boolean update = spaceService.lambdaUpdate()
                         .eq(Space::getId, finalSpaceId)
-                        .setSql("totalSize = totalSize + " + picture.getPicSize())
-                        .setSql("totalCount = totalCount + 1")
+                        .setSql("total_size = total_size + " + picture.getPicSize())
+                        .setSql("total_count = total_count + 1")
                         .update();
                 ThrowUtils.throwIf(!update, ErrorCode.OPERATION_ERROR, "额度更新失败");
             }
@@ -457,8 +458,8 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
             if (spaceId != null) {
                 boolean update = spaceService.lambdaUpdate()
                         .eq(Space::getId, spaceId)
-                        .setSql("totalSize = totalSize - " + oldPicture.getPicSize())
-                        .setSql("totalCount = totalCount - 1")
+                        .setSql("total_size = total_size - " + oldPicture.getPicSize())
+                        .setSql("total_count = total_count - 1")
                         .update();
                 ThrowUtils.throwIf(!update, ErrorCode.OPERATION_ERROR, "额度更新失败");
             }
@@ -508,7 +509,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         // 判断是否存在
         long id = pictureEditDTO.getId();
         Picture oldPicture = this.getById(id);
-        ThrowUtils.throwIf(oldPicture == null, ErrorCode.NOT_FOUND_ERROR);
+        ThrowUtils.throwIf(ObjUtil.isNull(oldPicture), ErrorCode.NOT_FOUND_ERROR);
         // 校验空间权限，已经改为使用注解鉴权
         checkPictureAuth(loginUser, oldPicture);
         // 补充审核参数

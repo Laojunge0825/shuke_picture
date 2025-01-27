@@ -1,5 +1,6 @@
 package com.shuke.shukepicturebe.service.impl;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -15,6 +16,7 @@ import com.shuke.shukepicturebe.model.entity.Space;
 import com.shuke.shukepicturebe.model.entity.User;
 import com.shuke.shukepicturebe.model.enums.SpaceLevelEnum;
 import com.shuke.shukepicturebe.model.vo.SpaceVO;
+import com.shuke.shukepicturebe.model.vo.UserVO;
 import com.shuke.shukepicturebe.service.SpaceService;
 import com.shuke.shukepicturebe.service.UserService;
 import org.springframework.beans.BeanUtils;
@@ -23,9 +25,13 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 
 /**
 * @author 舒克、舒克
@@ -124,17 +130,70 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
 
     @Override
     public SpaceVO getSpaceVO(Space space, HttpServletRequest request) {
-        return null;
+        // 对象转封装类
+        SpaceVO spaceVO = SpaceVO.objToVO(space);
+        // 关联查询用户信息
+        Long userId = space.getUserId();
+        if (userId != null && userId > 0) {
+            User user = userService.getById(userId);
+            UserVO userVO = userService.getUserVo(user);
+            spaceVO.setUserVO(userVO);
+        }
+        return spaceVO;
     }
 
     @Override
     public Page<SpaceVO> getSpaceVOPage(Page<Space> spacePage, HttpServletRequest request) {
-        return null;
+        List<Space> spaceList = spacePage.getRecords();
+        Page<SpaceVO> spaceVOPage = new Page<>(spacePage.getCurrent(), spacePage.getSize(), spacePage.getTotal());
+        if (CollUtil.isEmpty(spaceList)) {
+            return spaceVOPage;
+        }
+        // 对象列表 => 封装对象列表
+        List<SpaceVO> spaceVOList = spaceList.stream()
+                .map(SpaceVO::objToVO)
+                .collect(Collectors.toList());
+        // 1. 关联查询用户信息
+        // 1,2,3,4
+        Set<Long> userIdSet = spaceList.stream().map(Space::getUserId).collect(Collectors.toSet());
+        // 1 => user1, 2 => user2
+        Map<Long, List<User>> userIdUserListMap = userService.listByIds(userIdSet).stream()
+                .collect(Collectors.groupingBy(User::getId));
+        // 2. 填充信息
+        spaceVOList.forEach(spaceVO -> {
+            Long userId = spaceVO.getUserId();
+            User user = null;
+            if (userIdUserListMap.containsKey(userId)) {
+                user = userIdUserListMap.get(userId).get(0);
+            }
+            spaceVO.setUserVO(userService.getUserVo(user));
+        });
+        spaceVOPage.setRecords(spaceVOList);
+        return spaceVOPage;
     }
 
     @Override
     public QueryWrapper<Space> getQueryWrapper(SpaceQueryDTO spaceQueryDTO) {
-        return null;
+        QueryWrapper<Space> queryWrapper = new QueryWrapper<>();
+        if (spaceQueryDTO == null) {
+            return queryWrapper;
+        }
+        // 从对象中取值
+        Long id = spaceQueryDTO.getId();
+        Long userId = spaceQueryDTO.getUserId();
+        String spaceName = spaceQueryDTO.getSpaceName();
+        Integer spaceLevel = spaceQueryDTO.getSpaceLevel();
+        String sortField = spaceQueryDTO.getSortField();
+        String sortOrder = spaceQueryDTO.getSortOrder();
+        // 拼接查询条件
+        queryWrapper.eq(ObjUtil.isNotEmpty(id), "id", id);
+        queryWrapper.eq(ObjUtil.isNotEmpty(userId), "user_id", userId);
+        queryWrapper.like(StrUtil.isNotBlank(spaceName), "space_name", spaceName);
+        queryWrapper.eq(ObjUtil.isNotEmpty(spaceLevel), "space_level", spaceLevel);
+
+        // 排序
+        queryWrapper.orderBy(StrUtil.isNotEmpty(sortField), sortOrder.equals("ascend"), sortField);
+        return queryWrapper;
     }
 
     @Override
