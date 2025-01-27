@@ -8,6 +8,12 @@ import AddPicturePage from '@/pages/picture/AddPicturePage.vue'
 import PictureManagePage from '@/pages/admin/PictureManagePage.vue'
 import PictureDetailPage from '@/pages/picture/PictureDetailPage.vue'
 import AddPictureBatchPage from '@/pages/picture/AddPictureBatchPage.vue'
+import SpaceManagePage from '@/pages/admin/SpaceManagePage.vue'
+import AddSpacePage from '@/pages/space/AddSpacePage.vue'
+import MySpacePage from '@/pages/space/MySpacePage.vue'
+import SpaceDetailPage from '@/pages/space/SpaceDetailPage.vue'
+
+
 export const routes = [
   {
     path: '/',
@@ -55,7 +61,31 @@ export const routes = [
     path: '/add_picture/batch',
     name: '批量创建图片',
     component: AddPictureBatchPage,
-  }
+  },
+  {
+    path: '/admin/spaceManage',
+    name: '空间管理',
+    component: SpaceManagePage,
+  },
+  {
+    path: '/add_space',
+    name: '创建空间',
+    component: AddSpacePage,
+  },
+  {
+    path: '/my_space',
+    name: '我的空间',
+    component: MySpacePage,
+  },
+  {
+    path: '/space/:id',
+    name: '空间详情',
+    component: SpaceDetailPage,
+    // 允许将路由的参数作为组件的props传递给相应的组件
+    props: true,
+  },
+
+
 
 
 

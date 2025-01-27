@@ -2,9 +2,8 @@
 <div class="picture-list">
     <!-- 图片列表 -->
     <a-list
-      :grid="{ gutter: 16, xs: 1, sm: 2, md: 3, lg: 4, xl: 4, xxl: 6 }"
+      :grid="{ gutter: 16, xs: 1, sm: 2, md: 3, lg: 4, xl: 5, xxl: 6 }"
       :data-source="dataList"
-      :pagination="pagination"
       :loading="loading"
     >
       <template #renderItem="{ item: picture }">
@@ -34,6 +33,16 @@
                 </a-flex>
               </template>
             </a-card-meta>
+            <template v-if="showOp" #actions>
+              <a-sapce @click="(e) => doEdit(picture,e)" >
+                <EditOutlined key="edit" />
+                编辑
+              </a-sapce>
+              <a-space @click="(e) => doDelete(picture,e)" >
+                <DeleteOutlined key="delete" />
+                删除
+              </a-space>
+            </template>
           </a-card>
         </a-list-item>
       </template>
@@ -43,10 +52,15 @@
 </template>
 <script lang="ts" setup>
 import { useRouter } from 'vue-router'
+import { DeleteOutlined, EditOutlined } from '@ant-design/icons-vue'
+import { deletePictureUsingPost } from '@/api/pictureController.ts'
+import { message } from 'ant-design-vue'
 
 interface Props {
   dataList?: API.PictureVO[]
   loading?: boolean
+  showOp?: boolean
+  onReload?:() =>{}
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -61,6 +75,38 @@ const doClickPicture = (picture) => {
   router.push({
     path: `/picture/${picture.id}`,
   })
+}
+
+// 编辑
+const doEdit = (picture , e) => {
+  // 阻止冒泡
+  e.stopPropagation()
+  router.push({
+    path:'/add_picture',
+    query: {
+      id: picture.id,
+      spaceId: picture.spaceId
+    }
+  })
+}
+
+
+
+// 删除
+const doDelete = async (picture , e) => {
+  // 阻止冒泡
+  e.stopPropagation()
+  const id = picture.id
+  if (!id) {
+    return
+  }
+  const res = await deletePictureUsingPost({ id })
+  if (res.data.code === 0) {
+    message.success('删除成功')
+    props.onReload?.()
+  } else {
+    message.error('删除失败')
+  }
 }
 
 

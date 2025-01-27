@@ -24,6 +24,7 @@ import { uploadPictureUsingPost } from '@/api/pictureController.ts'
 
 interface Props {
   picture?: API.PictureVO
+  spaceId?: string
   onSuccess?: (newPicture: API.PictureVO) => void
 }
 
@@ -40,7 +41,8 @@ const handleUpload = async ({ file }: any) => {
   loading.value = true
   try {
     // 当id存在的时候，说明是对已经上传的图片进行更新，需要将其添加到参数列表，否则就是新增图片
-    const params = props.picture ? { id: props.picture.id } : {};
+    const params : API.PictureUploadRequest = props.picture ? { id: props.picture.id } : {}
+    params.spaceId = props.spaceId
     const res = await uploadPictureUsingPost(params, {}, file)
     if (res.data.code === 0 && res.data.data) {
       message.success('图片上传成功')

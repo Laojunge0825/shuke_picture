@@ -1,7 +1,7 @@
 <template>
   <div id="globalHeader">
     <a-row :wrap="false">
-      <a-col flex="200px">
+      <a-col flex="180px">
         <RouterLink to="/">
           <div class="title-bar">
             <img class="logo" src="../assets/logo.png" alt="logo" />
@@ -29,6 +29,7 @@
                  <a-menu>
                     <a-menu-item>
                       <router-link to="/my_space">
+                        <CloudOutlined />
                         我的空间
                       </router-link>
                     </a-menu-item>
@@ -52,7 +53,7 @@
 <script lang="ts" setup>
 import { computed, h, ref } from 'vue'
 // import { HomeOutlined,LogoutOutlined, UserOutlined } from '@ant-design/icons-vue'
-import { LogoutOutlined } from '@ant-design/icons-vue'
+import { LogoutOutlined , CloudOutlined} from '@ant-design/icons-vue'
 import { MenuProps, message } from 'ant-design-vue'
 import { useRouter } from 'vue-router'
 import { routes } from '@/router/routes'
