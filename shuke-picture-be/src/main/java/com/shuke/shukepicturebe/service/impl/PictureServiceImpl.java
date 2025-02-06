@@ -9,12 +9,10 @@ import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.google.gson.JsonObject;
 import com.shuke.shukepicturebe.exception.BusinessException;
 import com.shuke.shukepicturebe.exception.ErrorCode;
 import com.shuke.shukepicturebe.exception.ThrowUtils;
 import com.shuke.shukepicturebe.manager.CosManager;
-import com.shuke.shukepicturebe.manager.FileManager;
 import com.shuke.shukepicturebe.manager.upload.FilePictureUpload;
 import com.shuke.shukepicturebe.manager.upload.PictureUploadTemplate;
 import com.shuke.shukepicturebe.manager.upload.UrlPictureUpload;
@@ -39,7 +37,6 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -63,9 +60,6 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
     implements PictureService{
 
     @Resource
-    private FileManager fileManager;
-
-    @Resource
     private UserService userService;
 
     @Resource
@@ -85,10 +79,10 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
 
     /**
      * 图片上传
-     * @param inputSource
-     * @param pictureUploadDTO
-     * @param loginUser
-     * @return
+     * @param inputSource  文件输入源
+     * @param pictureUploadDTO 图片上传DTO
+     * @param loginUser 当前登录用户
+     * @return PictureVO
      */
     @Override
     public PictureVO uploadPicture(Object inputSource, PictureUploadDTO pictureUploadDTO, User loginUser) {
@@ -105,10 +99,8 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         }
 
         // 用于判断是新增还是更新图片
-        Long pictureId = null;
-        if (pictureUploadDTO != null ) {
-            pictureId = pictureUploadDTO.getId();
-        }
+        Long pictureId;
+        pictureId = pictureUploadDTO.getId();
         // 如果是更新图片，需要校验图片是否存在
         if (pictureId != null) {
             Picture oldPicture = this.getById(pictureId);
@@ -228,7 +220,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
 
     /**
      * 图片校验
-     * @param picture
+     * @param picture 图片
      */
     @Override
     public void validPicture(Picture picture) {
@@ -249,8 +241,8 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
 
     /**
      * 将查询请求转换成 QueryWrapper对象
-     * @param pictureQueryDTO
-     * @return
+     * @param pictureQueryDTO 查询请求
+     * @return QueryWrapper
      */
     @Override
     public QueryWrapper<Picture> getQueryWrapper(PictureQueryDTO pictureQueryDTO) {
@@ -281,7 +273,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         Date endEditTime = pictureQueryDTO.getEndEditTime();
 
 
-        boolean nullSpaceId = pictureQueryDTO.isNullSpaceId();
+        boolean nullSpaceId = pictureQueryDTO.getNullSpaceId();
         // 从多字段中搜索  
         if (StrUtil.isNotBlank(searchText)) {
             // 需要拼接查询条件  
@@ -314,14 +306,14 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
             }
         }
         // 排序  
-        queryWrapper.orderBy(StrUtil.isNotEmpty(sortField), sortOrder.equals("ascend"), sortField);
+        queryWrapper.orderBy(StrUtil.isNotEmpty(sortField), "ascend".equals(sortOrder), sortField);
         return queryWrapper;
     }
 
     /**
      * 审核图片
-     * @param pictureReviewDTO
-     * @param loginUser
+     * @param pictureReviewDTO 审核图片DTO
+     * @param loginUser 当前登录用户
      */
     @Override
     public void doPictureReview(PictureReviewDTO pictureReviewDTO, User loginUser) {
@@ -339,19 +331,19 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
             throw new BusinessException(ErrorCode.OPERATION_ERROR,"请勿重复审核");
         }
         // 更新审核状态
-        Picture updatePictue = new Picture();
-        BeanUtils.copyProperties(pictureReviewDTO,updatePictue);
-        updatePictue.setReviewStatus(pictureReviewDTO.getReviewStatus());
-        updatePictue.setReviewerId(pictureReviewDTO.getReviewerId());
-        updatePictue.setReviewTime(new Date());
-        boolean result = this.updateById(updatePictue);
+        Picture updatePicture = new Picture();
+        BeanUtils.copyProperties(pictureReviewDTO,updatePicture);
+        updatePicture.setReviewStatus(pictureReviewDTO.getReviewStatus());
+        updatePicture.setReviewerId(pictureReviewDTO.getReviewerId());
+        updatePicture.setReviewTime(new Date());
+        boolean result = this.updateById(updatePicture);
         ThrowUtils.throwIf(!result,ErrorCode.OPERATION_ERROR);
     }
 
     /**
      * 补充审核参数
-     * @param picture
-     * @param loginUser
+     * @param picture 图片参数
+     * @param loginUser 当前登录用户
      */
     @Override
     public void fillReviewParams(Picture picture, User loginUser) {
@@ -369,9 +361,9 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
 
     /**
      * 批量抓取上传图片
-     * @param pictureUploadByBatchDTO
-     * @param loginUser
-     * @return
+     * @param pictureUploadByBatchDTO 批量抓取上传图片DTO
+     * @param loginUser 当前登录用户
+     * @return int
      */
     @Override
     public Integer uploadPictureByBatch(PictureUploadByBatchDTO pictureUploadByBatchDTO, User loginUser) {
@@ -441,8 +433,8 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
 
     /**
      *  删除图片
-     * @param id
-     * @param loginUser
+     * @param id 图片id
+     * @param loginUser 当前登录用户
      */
     @Override
     public void deletePicture(long id, User loginUser) {
@@ -477,7 +469,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
 
     /**
      * 删除对象存储的图片
-     * @param picture
+     * @param picture 图片信息
      */
     @Async
     @Override
@@ -496,7 +488,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         try {
             key = new URL(pictureUrl).getPath();
         } catch (MalformedURLException e) {
-            e.printStackTrace();
+            log.error("解析 URL 时发生异常，URL: {}", pictureUrl, e);
         }
         cosManager.deleteObject(key);
     }
