@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -30,7 +31,7 @@ public class PictureQueryDTO extends PageRequest implements Serializable {
     /**
      * 是否只查询 spaceId 为 null 的数据
      */
-    private boolean nullSpaceId;
+    private Boolean nullSpaceId;
 
 
     /**
@@ -82,6 +83,17 @@ public class PictureQueryDTO extends PageRequest implements Serializable {
      * 搜索词（同时搜名称、简介等）
      */
     private String searchText;
+
+    /**
+     * 开始编辑时间
+     */
+    private Date startEditTime;
+
+    /**
+     * 结束编辑时间
+     */
+    private Date endEditTime;
+
 
     /**
      * 状态：0-待审核; 1-通过; 2-拒绝
