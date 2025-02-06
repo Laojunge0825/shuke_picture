@@ -22,6 +22,10 @@
       </a-space>
 
     </a-flex>
+
+    <!-- 搜索表单 -->
+    <PictureSearchForm :onSearch="onSearch"/>
+
     <div style="margin-bottom:16px"></div>
       <!-- 图片列表 -->
     <PictureList :dataList="dataList" :loading="loading" :showOp="true" :onReload="fetchData"/>
@@ -47,7 +51,7 @@ import { useLoginUserStore } from "@/stores/user/useLoginUserStore"
 import { useRouter } from 'vue-router'
 import { formatSize  } from '@/utils'
 import PictureList from '@/components/PictureList.vue'
-
+import PictureSearchForm from '@/components/PictureSearchForm.vue'
 const props = defineProps<{
   id: string | number
 }>()
@@ -85,8 +89,8 @@ const dataList = ref<API.PictureVO[]>([])
 const total = ref(0)
 const loading = ref(true)
 
-// 搜索条件
-const searchParams = reactive<API.PictureQueryDTO>({
+// 搜索条件  搜索参数可能被置空 所以将searchParams 从reactive 变成 ref，这样可以整体给它赋值为空对象
+const searchParams = ref<API.PictureQueryDTO>({
   current: 1,
   pageSize: 10,
   sortField: 'create_time',
@@ -96,17 +100,27 @@ const searchParams = reactive<API.PictureQueryDTO>({
 // 分页参数
 const pagination = computed(() => {
   return {
-    current: searchParams.current ?? 1,
-    pageSize: searchParams.pageSize ?? 10,
+    current: searchParams.value.current ?? 1,
+    pageSize: searchParams.value.pageSize ?? 10,
     total: total.value,
   }
 })
 
 // 切换页号时，修改参数并获取数据
 const onPageChange = (page: number, pageSize: number) => {
-  searchParams.current = page;
-  searchParams.pageSize = pageSize;
+  searchParams.value.current = page;
+  searchParams.value.pageSize = pageSize;
   fetchData();
+}
+
+// 搜索
+const onSearch = (newSearchParams: API.PictureQueryDTO) => {
+  searchParams.value = {
+    ...searchParams.value,
+    ...newSearchParams,
+    current:1,
+  }
+  fetchData()
 }
 
 /**
@@ -116,7 +130,7 @@ const fetchData = async () => {
   loading.value = true
   // 转换搜索参数
   const params = {
-    ...searchParams,
+    ...searchParams.value,
     spaceId: props.id
   }
 
