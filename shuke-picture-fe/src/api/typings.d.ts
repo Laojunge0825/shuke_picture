@@ -17,6 +17,12 @@ declare namespace API {
     message?: string
   }
 
+  type BaseResponseListPictureVO_ = {
+    code?: number
+    data?: PictureVO[]
+    message?: string
+  }
+
   type BaseResponseListSpaceLevel_ = {
     code?: number
     data?: SpaceLevel[]
@@ -199,6 +205,7 @@ declare namespace API {
     id?: number
     introduction?: string
     isDelete?: number
+    picColor?: string
     picFormat?: string
     picHeight?: number
     picName?: string
@@ -303,6 +310,11 @@ declare namespace API {
     url?: string
     userId?: number
     userVO?: UserVO
+  }
+
+  type SearchPictureByColorDTO = {
+    picColor?: string
+    spaceId?: number
   }
 
   type SearchPictureByPictureDTO = {

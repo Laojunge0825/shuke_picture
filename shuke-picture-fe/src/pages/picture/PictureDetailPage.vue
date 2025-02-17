@@ -3,11 +3,8 @@
     <a-row :gutter="[16, 16]">
       <!-- 图片展示区 -->
       <a-col :sm="24" :md="16" :xl="18">
-        <a-card title="图片预览" style="margin-bottom: 16px;">
-          <a-image
-            style="max-height: 600px; object-fit: contain"
-            :src="picture.url"
-          />
+        <a-card title="图片预览" style="margin-bottom: 16px">
+          <a-image style="max-height: 600px; object-fit: contain" :src="picture.url" />
         </a-card>
       </a-col>
       <!-- 图片信息区 -->
@@ -34,6 +31,20 @@
                 {{ tag }}
               </a-tag>
             </a-descriptions-item>
+            <a-descriptions-item label="主色调">
+              <a-space>
+                {{ picture.picColor ?? '-' }}
+                <div
+                  v-if="picture.picColor"
+                  :style="{
+                    backgroundColor: toHexColor(picture.picColor),
+                    width: '16px',
+                    height: '16px',
+                  }"
+                />
+              </a-space>
+            </a-descriptions-item>
+
             <a-descriptions-item label="格式">
               {{ picture.picFormat ?? '-' }}
             </a-descriptions-item>
@@ -70,19 +81,18 @@
               </template>
             </a-button>
           </a-space>
-
         </a-card>
       </a-col>
     </a-row>
   </div>
 </template>
 <script lang="ts" setup>
-import { ref , onMounted , computed } from 'vue'
-import { DeleteOutlined,  DownloadOutlined, EditOutlined } from '@ant-design/icons-vue'
-import { getPictureVoByIdUsingGet , deletePictureUsingPost } from '@/api/pictureController.ts'
+import { ref, onMounted, computed } from 'vue'
+import { DeleteOutlined, DownloadOutlined, EditOutlined } from '@ant-design/icons-vue'
+import { getPictureVoByIdUsingGet, deletePictureUsingPost } from '@/api/pictureController.ts'
 import { message } from 'ant-design-vue'
-import { useLoginUserStore } from "@/stores/user/useLoginUserStore"
-import { formatSize , downloadImage } from '@/utils'
+import { useLoginUserStore } from '@/stores/user/useLoginUserStore'
+import { formatSize, downloadImage, toHexColor } from '@/utils'
 import { useRouter } from 'vue-router'
 
 const props = defineProps<{
@@ -91,12 +101,12 @@ const props = defineProps<{
 
 const picture = ref<API.PictureVO>({})
 
-const router = useRouter();
+const router = useRouter()
 
 const loginUserStore = useLoginUserStore()
 // 是否具有编辑权限
 const canEdit = computed(() => {
-  const loginUser = loginUserStore.loginUser;
+  const loginUser = loginUserStore.loginUser
   // 未登录不可编辑
   if (!loginUser.id) {
     return false
@@ -105,7 +115,6 @@ const canEdit = computed(() => {
   const user = picture.value.userVO || {}
   return loginUser.id === user.id || loginUser.userRole === 'admin'
 })
-
 
 // 获取图片详情
 const fetchPictureDetail = async () => {
@@ -126,11 +135,11 @@ const fetchPictureDetail = async () => {
 // 编辑
 const doEdit = () => {
   router.push({
-    path:'/add_picture',
+    path: '/add_picture',
     query: {
       id: picture.value.id,
-      spaceId: picture.value.spaceId
-    }
+      spaceId: picture.value.spaceId,
+    },
   })
 }
 
@@ -138,7 +147,6 @@ const doEdit = () => {
 const doDownload = () => {
   downloadImage(picture.value.url)
 }
-
 
 // 删除
 const doDelete = async () => {
@@ -157,7 +165,6 @@ const doDelete = async () => {
 onMounted(() => {
   fetchPictureDetail()
 })
-
 </script>
 <style scoped>
 #pictureDetailPage {
