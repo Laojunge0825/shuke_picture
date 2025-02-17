@@ -11,6 +11,7 @@ import com.shuke.shukepicturebe.model.vo.PictureVO;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 /**
 * @author 舒克、舒克
@@ -113,4 +114,14 @@ public interface PictureService extends IService<Picture> {
      * @param picture
      */
     void checkPictureAuth(User loginUser,Picture picture);
+
+
+    /**
+     *  通过图片主色调查询
+     * @param spaceId
+     * @param picColor
+     * @param loginUser
+     * @return
+     */
+    List<PictureVO> searchPictureByColor(Long spaceId ,String picColor , User loginUser);
 }

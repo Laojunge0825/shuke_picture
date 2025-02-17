@@ -16,6 +16,7 @@
             <result property="picWidth" column="pic_width" jdbcType="INTEGER"/>
             <result property="picHeight" column="pic_height" jdbcType="INTEGER"/>
             <result property="picScale" column="pic_scale" jdbcType="DOUBLE"/>
+            <result property="picColor" column="pic_color" jdbcType="VARCHAR" />
             <result property="picFormat" column="pic_format" jdbcType="VARCHAR"/>
             <result property="userId" column="user_id" jdbcType="BIGINT"/>
             <result property="spaceId" column="space_id" jdbcType="BIGINT"/>
@@ -28,7 +29,7 @@
     <sql id="Base_Column_List">
         id,url,pic_name,thumbnail_url,
         introduction,category,tags,
-        pic_size,pic_width,pic_height,
+        pic_size,pic_width,pic_height,pic_color,
         pic_scale,pic_format,user_id,space_id,
         create_time,edit_time,update_time,
         is_delete
