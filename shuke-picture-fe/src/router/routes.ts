@@ -12,7 +12,7 @@ import SpaceManagePage from '@/pages/admin/SpaceManagePage.vue'
 import AddSpacePage from '@/pages/space/AddSpacePage.vue'
 import MySpacePage from '@/pages/space/MySpacePage.vue'
 import SpaceDetailPage from '@/pages/space/SpaceDetailPage.vue'
-
+import SearchPicturePage from '@/pages/picture/SearchPicturePage.vue'
 
 export const routes = [
   {
@@ -57,6 +57,13 @@ export const routes = [
     // 允许将路由的参数作为组件的props传递给相应的组件
     props: true,
   },
+
+  {
+    path: '/search_picture',
+    name: '图片搜索',
+    component: SearchPicturePage,
+  },
+
   {
     path: '/add_picture/batch',
     name: '批量创建图片',
@@ -84,9 +91,4 @@ export const routes = [
     // 允许将路由的参数作为组件的props传递给相应的组件
     props: true,
   },
-
-
-
-
-
 ]

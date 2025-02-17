@@ -1,5 +1,5 @@
 <template>
-<div class="picture-list">
+  <div class="picture-list">
     <!-- 图片列表 -->
     <a-list
       :grid="{ gutter: 16, xs: 1, sm: 2, md: 3, lg: 4, xl: 5, xxl: 6 }"
@@ -34,11 +34,15 @@
               </template>
             </a-card-meta>
             <template v-if="showOp" #actions>
-              <a-sapce @click="(e) => doEdit(picture,e)" >
+              <a-sapce @click="(e) => doSearch(picture, e)">
+                <SearchOutlined key="search" />
+                搜索
+              </a-sapce>
+              <a-sapce @click="(e) => doEdit(picture, e)">
                 <EditOutlined key="edit" />
                 编辑
               </a-sapce>
-              <a-space @click="(e) => doDelete(picture,e)" >
+              <a-space @click="(e) => doDelete(picture, e)">
                 <DeleteOutlined key="delete" />
                 删除
               </a-space>
@@ -47,12 +51,11 @@
         </a-list-item>
       </template>
     </a-list>
-
-</div>
+  </div>
 </template>
 <script lang="ts" setup>
 import { useRouter } from 'vue-router'
-import { DeleteOutlined, EditOutlined } from '@ant-design/icons-vue'
+import { DeleteOutlined, EditOutlined, SearchOutlined } from '@ant-design/icons-vue'
 import { deletePictureUsingPost } from '@/api/pictureController.ts'
 import { message } from 'ant-design-vue'
 
@@ -60,14 +63,13 @@ interface Props {
   dataList?: API.PictureVO[]
   loading?: boolean
   showOp?: boolean
-  onReload?:() =>{}
+  onReload?: () => {}
 }
 
 const props = withDefaults(defineProps<Props>(), {
   dataList: () => [],
   loading: false,
 })
-
 
 const router = useRouter()
 // 跳转至图片详情
@@ -78,22 +80,26 @@ const doClickPicture = (picture) => {
 }
 
 // 编辑
-const doEdit = (picture , e) => {
+const doEdit = (picture, e) => {
   // 阻止冒泡
   e.stopPropagation()
   router.push({
-    path:'/add_picture',
+    path: '/add_picture',
     query: {
       id: picture.id,
-      spaceId: picture.spaceId
-    }
+      spaceId: picture.spaceId,
+    },
   })
 }
 
-
+// 搜索
+const doSearch = (picture, e) => {
+  e.stopPropagation()
+  window.open(`/search_picture?pictureId=${picture.id}`)
+}
 
 // 删除
-const doDelete = async (picture , e) => {
+const doDelete = async (picture, e) => {
   // 阻止冒泡
   e.stopPropagation()
   const id = picture.id
@@ -108,9 +114,5 @@ const doDelete = async (picture , e) => {
     message.error('删除失败')
   }
 }
-
-
 </script>
-<style scoped>
-
-</style>
+<style scoped></style>
