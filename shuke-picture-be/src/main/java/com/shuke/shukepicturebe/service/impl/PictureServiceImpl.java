@@ -273,7 +273,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         Date endEditTime = pictureQueryDTO.getEndEditTime();
 
 
-        boolean nullSpaceId = pictureQueryDTO.getNullSpaceId();
+        boolean nullSpaceId = pictureQueryDTO.isNullSpaceId();
         // 从多字段中搜索  
         if (StrUtil.isNotBlank(searchText)) {
             // 需要拼接查询条件  

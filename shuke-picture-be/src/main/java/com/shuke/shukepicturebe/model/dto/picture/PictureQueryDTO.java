@@ -31,7 +31,7 @@ public class PictureQueryDTO extends PageRequest implements Serializable {
     /**
      * 是否只查询 spaceId 为 null 的数据
      */
-    private Boolean nullSpaceId;
+    private boolean nullSpaceId;
 
 
     /**
