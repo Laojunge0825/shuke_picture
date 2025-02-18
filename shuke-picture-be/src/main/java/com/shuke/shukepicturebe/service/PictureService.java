@@ -124,4 +124,25 @@ public interface PictureService extends IService<Picture> {
      * @return
      */
     List<PictureVO> searchPictureByColor(Long spaceId ,String picColor , User loginUser);
+
+    /**
+     * 批量修改图片
+     * @param pictureEditByBatchDTO
+     * @param loginUser
+     */
+    void editPictureByBatch(PictureEditByBatchDTO pictureEditByBatchDTO, User loginUser);
+
+    /**
+     *  批量修改图片 数据量大的时候 使用线程池+分批+并发处理
+     * @param pictureEditByBatchDTO
+     * @param loginUser
+     */
+    void editPictureMetadata(PictureEditByBatchDTO pictureEditByBatchDTO, User loginUser);
+
+    /**
+     * 填充图片名称
+     * @param pictureList
+     * @param nameRule
+     */
+    void fillPictureWithNameRule( List<Picture> pictureList,String nameRule);
 }

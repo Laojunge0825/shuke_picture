@@ -315,6 +315,20 @@ public class PictureController {
         return ResultUtils.success(true);
     }
 
+    /**
+     * 批量编辑
+     * @param pictureEditByBatchDTO
+     * @param request
+     * @return
+     */
+    @PostMapping("/edit/batch")
+    public BaseResponse<Boolean> editPictureByBatch(@RequestBody PictureEditByBatchDTO pictureEditByBatchDTO, HttpServletRequest request) {
+        ThrowUtils.throwIf(pictureEditByBatchDTO == null, ErrorCode.PARAMS_ERROR);
+        User loginUser = userService.getLoginUser(request);
+        pictureService.editPictureByBatch(pictureEditByBatchDTO, loginUser);
+        return ResultUtils.success(true);
+    }
+
 
     /**
      * 预置标签和分类
