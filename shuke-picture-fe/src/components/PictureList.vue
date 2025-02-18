@@ -33,15 +33,22 @@
                 </a-flex>
               </template>
             </a-card-meta>
+
+            <ShareModal ref="shareModalRef" :link="shareLink" />
+
             <template v-if="showOp" #actions>
-              <a-sapce @click="(e) => doSearch(picture, e)">
+              <a-space @click="(e) => doSearch(picture, e)">
                 <SearchOutlined key="search" />
                 搜索
-              </a-sapce>
-              <a-sapce @click="(e) => doEdit(picture, e)">
+              </a-space>
+              <a-space @click="(e) => doEdit(picture, e)">
                 <EditOutlined key="edit" />
                 编辑
-              </a-sapce>
+              </a-space>
+              <a-space @click="(e) => doShare(picture, e)">
+                <ShareAltOutlined key="share" />
+                分享
+              </a-space>
               <a-space @click="(e) => doDelete(picture, e)">
                 <DeleteOutlined key="delete" />
                 删除
@@ -55,9 +62,16 @@
 </template>
 <script lang="ts" setup>
 import { useRouter } from 'vue-router'
-import { DeleteOutlined, EditOutlined, SearchOutlined } from '@ant-design/icons-vue'
+import {
+  DeleteOutlined,
+  EditOutlined,
+  SearchOutlined,
+  ShareAltOutlined,
+} from '@ant-design/icons-vue'
 import { deletePictureUsingPost } from '@/api/pictureController.ts'
 import { message } from 'ant-design-vue'
+import { ref } from 'vue'
+import ShareModal from '@/components/ShareModal.vue'
 
 interface Props {
   dataList?: API.PictureVO[]
@@ -96,6 +110,21 @@ const doEdit = (picture, e) => {
 const doSearch = (picture, e) => {
   e.stopPropagation()
   window.open(`/search_picture?pictureId=${picture.id}`)
+}
+
+// 分享弹窗引用
+const shareModalRef = ref()
+// 分享链接
+const shareLink = ref<string>()
+
+// 分享
+const doShare = (picture, e) => {
+  e.stopPropagation()
+  // 分享链接
+  shareLink.value = `${window.location.protocol}//${window.location.host}/picture/${picture.id}`
+  if (shareModalRef.value) {
+    shareModalRef.value.openModal()
+  }
 }
 
 // 删除
