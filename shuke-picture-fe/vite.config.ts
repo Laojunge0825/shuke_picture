@@ -16,6 +16,6 @@ export default defineConfig({
     port: 8110, // 将项目启动端口号设置为8110
     proxy: {
       '/api': 'http://localhost:8100',
-    }
+    },
   },
 })

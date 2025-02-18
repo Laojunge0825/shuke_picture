@@ -3,8 +3,8 @@
     <h2 style="margin-bottom: 16px">
       {{ route.query?.id ? '修改图片' : '创建图片' }}
     </h2>
-    <a-typography-paragragh v-if="spaceId" type = "secondary">
-      保存至空间：<a :href="`/space/${spaceId}`">{{spaceId}}</a>
+    <a-typography-paragragh v-if="spaceId" type="secondary">
+      保存至空间：<a :href="`/space/${spaceId}`">{{ spaceId }}</a>
     </a-typography-paragragh>
     <!-- 选择上传方式 -->
     <a-tabs v-model:activeKey="uploadType">
@@ -17,7 +17,17 @@
         <UrlPictureUpload :picture="picture" :spaceId="spaceId" :onSuccess="onSuccess" />
       </a-tab-pane>
     </a-tabs>
-    <a-form layout="vertical" :model="pictureForm" @finish="handleSubmit" v-if = "picture">
+    <div v-if="picture" class="edit-bar">
+      <a-button :icon="h(EditOutlined)" @click="doEditPicture">编辑图片</a-button>
+      <ImageCropper
+        ref="imageCropperRef"
+        :imageUrl="picture?.url"
+        :picture="picture"
+        :spaceId="spaceId"
+        :onSuccess="onCropSuccess"
+      />
+    </div>
+    <a-form layout="vertical" :model="pictureForm" @finish="handleSubmit" v-if="picture">
       <a-form-item label="名称" name="picName">
         <a-input v-model:value="pictureForm.picName" placeholder="请输入名称" />
       </a-form-item>
@@ -54,31 +64,37 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { reactive , ref ,onMounted, computed } from "vue"
+import { reactive, ref, onMounted, computed, h } from 'vue'
 import { message } from 'ant-design-vue'
 import PictureUpload from '@/components/PictureUpload.vue'
 import UrlPictureUpload from '@/components/UrlPictureUpload.vue'
-import { listPictureTagCategoryUsingGet , editPictureUsingPost , getPictureVoByIdUsingGet } from '@/api/pictureController.ts'
-import { useRouter , useRoute } from 'vue-router'
+import ImageCropper from '@/components/ImageCropper.vue'
+import { EditOutlined } from '@ant-design/icons-vue'
+import {
+  listPictureTagCategoryUsingGet,
+  editPictureUsingPost,
+  getPictureVoByIdUsingGet,
+} from '@/api/pictureController.ts'
+import { useRouter, useRoute } from 'vue-router'
 
 const picture = ref<API.PictureVO>()
 const pictureForm = reactive<API.PictureEditDTO>({})
 
 // 上传方式
-const uploadType  = ref<'file' | 'url'>('file')
+const uploadType = ref<'file' | 'url'>('file')
 
 const categoryOptions = ref<string[]>([])
 const tagOptions = ref<string[]>([])
 
 // 获取路由的实例对象 操做页面前进、后退、跳转
-const router = useRouter();
+const router = useRouter()
 // 获取当前路由对象 访问当前路由的信息 如参数信息
 const route = useRoute()
 
 // 空间id
-const spaceId = computed( () => {
-  return route.query?.spaceId;
-});
+const spaceId = computed(() => {
+  return route.query?.spaceId
+})
 
 // 获取标签和分类选项
 const getTagCategoryOptions = async () => {
@@ -109,7 +125,6 @@ onMounted(() => {
 
 // 图片上传成功后 回显到表单
 const onSuccess = (newPicture: API.PictureVO) => {
-
   picture.value = newPicture
   pictureForm.picName = newPicture.picName
 }
@@ -125,7 +140,7 @@ const handleSubmit = async (values: any) => {
   }
   const res = await editPictureUsingPost({
     id: pictureId,
-    spaceId:spaceId.value,
+    spaceId: spaceId.value,
     ...values,
   })
   // 操作成功
@@ -139,7 +154,6 @@ const handleSubmit = async (values: any) => {
     message.error('操作失败，' + res.data.message)
   }
 }
-
 
 // 获取老数据
 const getOldPicture = async () => {
@@ -164,7 +178,20 @@ onMounted(() => {
   getOldPicture()
 })
 
+// 图片编辑弹窗引用
+const imageCropperRef = ref()
 
+// 编辑图片
+const doEditPicture = () => {
+  if (imageCropperRef.value) {
+    imageCropperRef.value.openModal()
+  }
+}
+
+// 编辑成功事件
+const onCropSuccess = (newPicture: API.PictureVO) => {
+  picture.value = newPicture
+}
 </script>
 <style scoped>
 #addPicturePage {
@@ -172,4 +199,8 @@ onMounted(() => {
   margin: 0 auto;
 }
 
+#addPicturePage .edit-bar {
+  text-align: center;
+  margin: 16px 0;
+}
 </style>
