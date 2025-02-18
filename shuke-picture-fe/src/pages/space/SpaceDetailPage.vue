@@ -7,6 +7,8 @@
         <a-button type="primary" :href="`/add_picture?spaceId=${id}`" target="_blank">
           + 创建图片
         </a-button>
+        <a-button :icon="h(EditOutlined)" @click="doBatchEdit"> 批量编辑</a-button>
+
         <a-tooltip
           :title="`占用空间 ${formatSize(space.totalSize)} / ${formatSize(space.maxSize)}`"
         >
@@ -31,6 +33,14 @@
     <!-- 图片列表 -->
     <PictureList :dataList="dataList" :loading="loading" :showOp="true" :onReload="fetchData" />
 
+    <!-- 批量修改 -->
+    <BatchEditPictureModal
+      ref="batchEditPictureModalRef"
+      :spaceId="id"
+      :pictureList="dataList"
+      :onSuccess="onBatchEditPictureSuccess"
+    />
+
     <!-- 分页 -->
     <a-pagination
       style="text-align: right"
@@ -42,7 +52,7 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { ref, onMounted, computed, reactive } from 'vue'
+import { ref, onMounted, computed, reactive, h } from 'vue'
 import { getSpaceVoByIdUsingGet, deleteSpaceUsingPost } from '@/api/spaceController.ts'
 import {
   listPictureVoByPageUsingPost,
@@ -56,6 +66,8 @@ import { ColorPicker } from 'vue3-colorpicker'
 import 'vue3-colorpicker/style.css'
 import PictureList from '@/components/PictureList.vue'
 import PictureSearchForm from '@/components/PictureSearchForm.vue'
+import { EditOutlined } from '@ant-design/icons-vue'
+import BatchEditPictureModal from '@/components/BatchEditPictureModal.vue'
 
 const props = defineProps<{
   id: string | number
@@ -148,6 +160,21 @@ const fetchData = async () => {
 onMounted(() => {
   fetchData()
 })
+
+// 批量编辑弹窗引用
+const batchEditPictureModalRef = ref()
+
+// 打开批量编辑弹窗
+const doBatchEdit = () => {
+  if (batchEditPictureModalRef.value) {
+    batchEditPictureModalRef.value.openModal()
+  }
+}
+
+// 批量编辑成功后，刷新数据
+const onBatchEditPictureSuccess = () => {
+  fetchData()
+}
 
 /**
  * 切换颜色事件 切换颜色时会触发搜索
