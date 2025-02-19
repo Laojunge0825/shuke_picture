@@ -6,6 +6,9 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.shuke.shukepicturebe.annotation.AuthCheck;
+import com.shuke.shukepicturebe.api.aliyun.AliYunAiApi;
+import com.shuke.shukepicturebe.api.aliyun.model.CreateOutPaintingTaskResponse;
+import com.shuke.shukepicturebe.api.aliyun.model.GetOutPaintingTaskResponse;
 import com.shuke.shukepicturebe.api.imagesearch.ImageSearchApiFacade;
 import com.shuke.shukepicturebe.api.imagesearch.model.ImageSearchResult;
 import com.shuke.shukepicturebe.common.BaseResponse;
@@ -37,7 +40,6 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.time.Duration;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -62,6 +64,9 @@ public class PictureController {
 
     @Resource
     private RedisTemplate redisTemplate;
+
+    @Resource
+    private AliYunAiApi aliYunAiApi;
 
     /**
      * 本地缓存
@@ -392,6 +397,29 @@ public class PictureController {
     }
 
 
+    /**
+     * 创建AI扩图任务
+     */
+    @PostMapping("/out_painting/create_task")
+    public BaseResponse<CreateOutPaintingTaskResponse> createPictureOutPaintingTask(@RequestBody CreatePictureOutPaintingTaskDTO createPictureOutPaintingTaskDTO,
+                                                                                    HttpServletRequest request){
+        if(createPictureOutPaintingTaskDTO == null || createPictureOutPaintingTaskDTO.getPictureId() == null){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        User loginUser = userService.getLoginUser(request);
+        CreateOutPaintingTaskResponse pictureOutPaintingTask = pictureService.createPictureOutPaintingTask(createPictureOutPaintingTaskDTO, loginUser);
+        return ResultUtils.success(pictureOutPaintingTask);
+    }
 
+    /**
+     * 查询AI扩图任务
+     */
+    @GetMapping("/out_painting/get_task")
+    public BaseResponse<GetOutPaintingTaskResponse> getPictureOutPaintingTask(String taskId) {
 
+        ThrowUtils.throwIf(taskId == null, ErrorCode.PARAMS_ERROR);
+        GetOutPaintingTaskResponse task = aliYunAiApi.getOutPaintingTask(taskId);
+        return ResultUtils.success(task);
+
+    }
 }

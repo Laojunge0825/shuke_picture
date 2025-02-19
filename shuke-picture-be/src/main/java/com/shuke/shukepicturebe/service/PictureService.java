@@ -4,11 +4,11 @@ package com.shuke.shukepicturebe.service;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.shuke.shukepicturebe.api.aliyun.model.CreateOutPaintingTaskResponse;
 import com.shuke.shukepicturebe.model.dto.picture.*;
 import com.shuke.shukepicturebe.model.entity.Picture;
 import com.shuke.shukepicturebe.model.entity.User;
 import com.shuke.shukepicturebe.model.vo.PictureVO;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -145,4 +145,14 @@ public interface PictureService extends IService<Picture> {
      * @param nameRule
      */
     void fillPictureWithNameRule( List<Picture> pictureList,String nameRule);
+
+
+    /**
+     * 创建扩图任务
+     *
+     * @param createPictureOutPaintingTaskDTO
+     * @param loginUser
+     * @return
+     */
+    CreateOutPaintingTaskResponse createPictureOutPaintingTask(CreatePictureOutPaintingTaskDTO createPictureOutPaintingTaskDTO, User loginUser);
 }

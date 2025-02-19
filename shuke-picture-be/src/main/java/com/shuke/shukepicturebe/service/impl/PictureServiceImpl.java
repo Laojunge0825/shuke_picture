@@ -9,6 +9,9 @@ import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.shuke.shukepicturebe.api.aliyun.AliYunAiApi;
+import com.shuke.shukepicturebe.api.aliyun.model.CreateOutPaintingTaskRequest;
+import com.shuke.shukepicturebe.api.aliyun.model.CreateOutPaintingTaskResponse;
 import com.shuke.shukepicturebe.exception.BusinessException;
 import com.shuke.shukepicturebe.exception.ErrorCode;
 import com.shuke.shukepicturebe.exception.ThrowUtils;
@@ -30,12 +33,12 @@ import com.shuke.shukepicturebe.service.SpaceService;
 import com.shuke.shukepicturebe.service.UserService;
 import com.shuke.shukepicturebe.utils.ColorSimilarUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.tomcat.util.threads.ThreadPoolExecutor;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -80,6 +83,8 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
 
     @Resource
     private CosManager cosManager;
+    @Autowired
+    private AliYunAiApi aliYunAiApi;
 
     /**
      * 线程池
@@ -719,6 +724,34 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
             log.error("填充图片名称失败",e);
             throw new BusinessException(ErrorCode.OPERATION_ERROR,"名称解析错误");
         }
+    }
+
+    /**
+     * 创建扩图任务
+     *
+     * @param createPictureOutPaintingTaskDTO
+     * @param loginUser
+     * @return
+     */
+    @Override
+    public CreateOutPaintingTaskResponse createPictureOutPaintingTask(CreatePictureOutPaintingTaskDTO createPictureOutPaintingTaskDTO, User loginUser) {
+        Long pictureId = createPictureOutPaintingTaskDTO.getPictureId();
+        // 1. 校验参数
+        ThrowUtils.throwIf(pictureId == null,ErrorCode.PARAMS_ERROR);
+        ThrowUtils.throwIf(loginUser == null,ErrorCode.NOT_AUTH_ERROR);
+        // 2. Optional  判断图片是否为空
+        Picture picture = Optional.ofNullable(this.getById(pictureId))
+               .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_ERROR,"图片不存在"));
+        //权限校验
+        checkPictureAuth(loginUser,picture);
+        // 构造请求参数
+        CreateOutPaintingTaskRequest taskRequest = new CreateOutPaintingTaskRequest();
+        CreateOutPaintingTaskRequest.Input input = new CreateOutPaintingTaskRequest.Input();
+        input.setImageUrl(picture.getUrl());
+        taskRequest.setInput(input);
+        BeanUtils.copyProperties(createPictureOutPaintingTaskDTO,taskRequest);
+        // 创建任务
+        return aliYunAiApi.createOutPaintingTask(taskRequest);
     }
 
 

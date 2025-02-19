@@ -52,6 +52,15 @@
             <artifactId>hutool-all</artifactId>
             <version>5.8.26</version>
         </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient -->
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.5.13</version>
+        </dependency>
+
+
         <!--    knife4j -->
         <dependency>
             <groupId>com.github.xiaoymin</groupId>
@@ -69,6 +78,14 @@
             <artifactId>cos_api</artifactId>
             <version>5.6.227</version>
         </dependency>
+        <!--    阿里大模型   -->
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>dashscope-sdk-java</artifactId>
+            <!-- 请将 'the-latest-version' 替换为最新版本号：https://mvnrepository.com/artifact/com.alibaba/dashscope-sdk-java -->
+            <version>2.18.0</version>
+        </dependency>
+
         <!--    minio集成   -->
         <dependency>
             <groupId>io.minio</groupId>
