@@ -17,14 +17,27 @@
         <UrlPictureUpload :picture="picture" :spaceId="spaceId" :onSuccess="onSuccess" />
       </a-tab-pane>
     </a-tabs>
+
+    <!-- 编辑图片 -->
     <div v-if="picture" class="edit-bar">
-      <a-button :icon="h(EditOutlined)" @click="doEditPicture">编辑图片</a-button>
+      <a-space size="middle">
+        <a-button :icon="h(EditOutlined)" @click="doEditPicture">编辑图片</a-button>
+        <a-button :icon="h(FullscreenOutlined)" @click="doImagePainting">AI扩图</a-button>
+      </a-space>
+      <!-- 图片裁剪组件 -->
       <ImageCropper
         ref="imageCropperRef"
         :imageUrl="picture?.url"
         :picture="picture"
         :spaceId="spaceId"
         :onSuccess="onCropSuccess"
+      />
+      <!-- 图片扩图组件 -->
+      <ImageOutPainting
+        ref="imageOutPaintingRef"
+        :imageUrl="picture?.url"
+        :picture="picture"
+        :space="spaceId"
       />
     </div>
     <a-form layout="vertical" :model="pictureForm" @finish="handleSubmit" v-if="picture">
@@ -69,7 +82,8 @@ import { message } from 'ant-design-vue'
 import PictureUpload from '@/components/PictureUpload.vue'
 import UrlPictureUpload from '@/components/UrlPictureUpload.vue'
 import ImageCropper from '@/components/ImageCropper.vue'
-import { EditOutlined } from '@ant-design/icons-vue'
+import ImageOutPainting from '@/components/ImageOutPainting.vue'
+import { EditOutlined, FullscreenOutlined } from '@ant-design/icons-vue'
 import {
   listPictureTagCategoryUsingGet,
   editPictureUsingPost,
@@ -190,6 +204,21 @@ const doEditPicture = () => {
 
 // 编辑成功事件
 const onCropSuccess = (newPicture: API.PictureVO) => {
+  picture.value = newPicture
+}
+
+// ---------------------------- 图片扩图弹窗引用
+
+// AI扩图弹窗引用
+const imageOutPaintingRef = ref()
+
+const doImagePainting = () => {
+  if (imageOutPaintingRef.value) {
+    imageOutPaintingRef.value.openModal()
+  }
+}
+
+const onImageOutPaintingSuccess = (newPicture: API.PictureVO) => {
   picture.value = newPicture
 }
 </script>
