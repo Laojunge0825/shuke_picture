@@ -13,6 +13,7 @@ import AddSpacePage from '@/pages/space/AddSpacePage.vue'
 import MySpacePage from '@/pages/space/MySpacePage.vue'
 import SpaceDetailPage from '@/pages/space/SpaceDetailPage.vue'
 import SearchPicturePage from '@/pages/picture/SearchPicturePage.vue'
+import SpaceAnalyzePage from '@/pages/SpaceAnalyzePage.vue'
 
 export const routes = [
   {
@@ -90,5 +91,10 @@ export const routes = [
     component: SpaceDetailPage,
     // 允许将路由的参数作为组件的props传递给相应的组件
     props: true,
+  },
+  {
+    path: '/space_analyze',
+    name: '空间分析',
+    component: SpaceAnalyzePage,
   },
 ]
