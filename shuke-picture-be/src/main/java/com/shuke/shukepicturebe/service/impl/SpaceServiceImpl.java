@@ -15,6 +15,7 @@ import com.shuke.shukepicturebe.model.dto.space.SpaceQueryDTO;
 import com.shuke.shukepicturebe.model.entity.Space;
 import com.shuke.shukepicturebe.model.entity.User;
 import com.shuke.shukepicturebe.model.enums.SpaceLevelEnum;
+import com.shuke.shukepicturebe.model.enums.SpaceTypeEnum;
 import com.shuke.shukepicturebe.model.vo.SpaceVO;
 import com.shuke.shukepicturebe.model.vo.UserVO;
 import com.shuke.shukepicturebe.service.SpaceService;
@@ -59,20 +60,23 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
         Space space = new Space();
         BeanUtils.copyProperties(spaceAddDTO, space);
         // 默认值
-        if (StrUtil.isBlank(spaceAddDTO.getSpaceName())) {
+        if (StrUtil.isBlank(space.getSpaceName())) {
             space.setSpaceName("默认空间");
         }
-        if (spaceAddDTO.getSpaceLevel() == null) {
-            spaceAddDTO.setSpaceLevel(SpaceLevelEnum.COMMON.getValue());
+        if (space.getSpaceLevel() == null) {
+            space.setSpaceLevel(SpaceLevelEnum.COMMON.getValue());
         }
-        // 填充数据
-        this.fillSpaceBySpaceLevel(space);
+        if (space.getSpaceType() == null) {
+            space.setSpaceType(SpaceTypeEnum.PRIVATE.getValue());
+        }
+        // 填充数据 空间级别 和 空间类型
+        this.buildInsertSpace(spaceAddDTO, loginUser);
         // 数据校验
         this.validSpace(space, true);
         Long userId = loginUser.getId();
         space.setUserId(userId);
-        // 权限校验  普通用户 只能创建普通版的空间模块
-        if (SpaceLevelEnum.COMMON.getValue() != spaceAddDTO.getSpaceLevel() && !userService.isAdmin(loginUser)) {
+        // 权限校验  普通用户 只能创建普通版的空间模块,以及一个团队空间
+        if (SpaceLevelEnum.COMMON.getValue() != space.getSpaceLevel() && !userService.isAdmin(loginUser)) {
             throw new BusinessException(ErrorCode.NOT_AUTH_ERROR, "无权限创建指定级别的空间");
         }
         // 针对用户进行加锁
@@ -97,7 +101,11 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
         reentrantLock.lock();
         try {
             Long newSpaceId = transactionTemplate.execute(status -> {
-                boolean exists = this.lambdaQuery().eq(Space::getUserId, userId).exists();
+                // 校验是否已经有该类型的空间
+                boolean exists = this.lambdaQuery()
+                        .eq(Space::getUserId, userId)
+                        .eq(Space::getSpaceType, space.getSpaceType())
+                        .exists();
                 ThrowUtils.throwIf(exists, ErrorCode.OPERATION_ERROR, "每个用户仅能有一个私有空间");
                 // 写入数据库
                 boolean result = this.save(space);
@@ -112,21 +120,34 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
 
     }
 
-
     @Override
     public void validSpace(Space space, boolean add) {
-        ThrowUtils.throwIf(ObjUtil.isNull(space), ErrorCode.PARAMS_ERROR);
-        SpaceLevelEnum spaceLevelEnum = SpaceLevelEnum.getEnumByValue(space.getSpaceLevel());
-        ThrowUtils.throwIf(StrUtil.isBlank(space.getSpaceName()),ErrorCode.PARAMS_ERROR,"空间名称不能为空");
-        ThrowUtils.throwIf(space.getSpaceName().length() > 30,ErrorCode.PARAMS_ERROR,"空间名称长度过长");
-        ThrowUtils.throwIf(ObjUtil.isNull(space.getSpaceLevel()),ErrorCode.PARAMS_ERROR,"空间级别不能为空");
-        ThrowUtils.throwIf(ObjUtil.isNull(spaceLevelEnum), ErrorCode.PARAMS_ERROR,"空间级别不存在");
-        // 新建空间
-        if(add){
-
+        ThrowUtils.throwIf(space == null, ErrorCode.PARAMS_ERROR);
+        // 从对象中取值
+        String spaceName = space.getSpaceName();
+        Integer spaceLevel = space.getSpaceLevel();
+        Integer spaceType = space.getSpaceType();
+        SpaceLevelEnum.getEnumByValue(spaceLevel);
+        SpaceTypeEnum spaceTypeEnum = SpaceTypeEnum.getEnumByValue(spaceType);
+        // 要创建
+        if (add) {
+            if (StrUtil.isBlank(spaceName)) {
+                throw new BusinessException(ErrorCode.PARAMS_ERROR, "空间名称不能为空");
+            }
+            if (spaceLevel == null) {
+                throw new BusinessException(ErrorCode.PARAMS_ERROR, "空间级别不能为空");
+            }
+            // 修改数据时，如果要改空间级别
+            if (spaceType != null && spaceTypeEnum == null) {
+                throw new BusinessException(ErrorCode.PARAMS_ERROR, "空间类型不存在");
+            }
         }
-
+        if (StrUtil.isNotBlank(spaceName) && spaceName.length() > 30) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "空间名称过长");
+        }
     }
+
+
 
     @Override
     public SpaceVO getSpaceVO(Space space, HttpServletRequest request) {
@@ -185,11 +206,13 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
         Integer spaceLevel = spaceQueryDTO.getSpaceLevel();
         String sortField = spaceQueryDTO.getSortField();
         String sortOrder = spaceQueryDTO.getSortOrder();
+        Integer spaceType = spaceQueryDTO.getSpaceType();
         // 拼接查询条件
         queryWrapper.eq(ObjUtil.isNotEmpty(id), "id", id);
         queryWrapper.eq(ObjUtil.isNotEmpty(userId), "user_id", userId);
         queryWrapper.like(StrUtil.isNotBlank(spaceName), "space_name", spaceName);
         queryWrapper.eq(ObjUtil.isNotEmpty(spaceLevel), "space_level", spaceLevel);
+        queryWrapper.eq(ObjUtil.isNotEmpty(spaceType), "space_type", spaceType);
 
         // 排序
         queryWrapper.orderBy(StrUtil.isNotEmpty(sortField), sortOrder.equals("ascend"), sortField);
@@ -210,6 +233,31 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
     public void checkSpaceAuth(User loginUser, Space space) {
 
     }
+
+    /**
+     * 修复新建时的空间信息
+     * @param spaceAddDTO
+     * @param loginUser
+     * @return
+     */
+    private Space buildInsertSpace(SpaceAddDTO spaceAddDTO, User loginUser) {
+        Space space = new Space();
+        // 默认值
+        if (StrUtil.isBlank(spaceAddDTO.getSpaceName())) {
+            spaceAddDTO.setSpaceName("默认空间");
+        }
+        if (spaceAddDTO.getSpaceLevel() == null) {
+            spaceAddDTO.setSpaceLevel(SpaceLevelEnum.COMMON.getValue());
+        }
+        if (spaceAddDTO.getSpaceType() == null) {
+            spaceAddDTO.setSpaceType(SpaceTypeEnum.PRIVATE.getValue());
+        }
+        BeanUtils.copyProperties(spaceAddDTO, space);
+        space.setUserId(loginUser.getId());
+        this.fillSpaceBySpaceLevel(space);
+        return space;
+    }
+
 }
 
 

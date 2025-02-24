@@ -8,6 +8,7 @@
             <id property="id" column="id" jdbcType="BIGINT"/>
             <result property="spaceName" column="space_name" jdbcType="VARCHAR"/>
             <result property="spaceLevel" column="space_level" jdbcType="INTEGER"/>
+            <result property="spaceType" column="space_type" jdbcType="INTEGER"/>
             <result property="maxSize" column="max_size" jdbcType="BIGINT"/>
             <result property="maxCount" column="max_count" jdbcType="BIGINT"/>
             <result property="totalSize" column="total_size" jdbcType="BIGINT"/>
@@ -20,9 +21,32 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id,space_name,space_level,
+        id,space_name,space_level,space_type,
         max_size,max_count,total_size,
         total_count,user_id,create_time,
         edit_time,update_time,is_delete
     </sql>
+
+    <!--  获取存储使用量前N的空间  -->
+    <select id="getTopNSpace" resultMap="BaseResultMap">
+        select id,sapce_name,user_id,total_size from space
+        where is_delete = 0
+        order by total_size desc
+        limit #{n}
+    </select>
+
+    <!--  获取存储使用率前N的空间  -->
+    <select id="getTopNSpaceByUsage" resultMap="BaseResultMap">
+        select id,sapce_name,user_id,total_size from space
+        where is_delete = 0
+        order by total_size / max_size desc
+        limit #{n}
+    </select>
+
+    <!--  删除某用户的所有空间  -->
+    <delete id="deleteSpaceByUserId">
+        delete from space
+        where user_id = #{userId}
+    </delete>
+
 </mapper>
