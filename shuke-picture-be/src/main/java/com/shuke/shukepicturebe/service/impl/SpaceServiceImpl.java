@@ -13,8 +13,10 @@ import com.shuke.shukepicturebe.mapper.SpaceMapper;
 import com.shuke.shukepicturebe.model.dto.space.SpaceAddDTO;
 import com.shuke.shukepicturebe.model.dto.space.SpaceQueryDTO;
 import com.shuke.shukepicturebe.model.entity.Space;
+import com.shuke.shukepicturebe.model.entity.SpaceUser;
 import com.shuke.shukepicturebe.model.entity.User;
 import com.shuke.shukepicturebe.model.enums.SpaceLevelEnum;
+import com.shuke.shukepicturebe.model.enums.SpaceRoleEnum;
 import com.shuke.shukepicturebe.model.enums.SpaceTypeEnum;
 import com.shuke.shukepicturebe.model.vo.SpaceVO;
 import com.shuke.shukepicturebe.model.vo.UserVO;
@@ -48,6 +50,9 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
 
     @Resource
     private UserService userService;
+
+    @Resource
+    private SpaceUserServiceImpl spaceUserService;
 
 //    @Resource
 //    private ConcurrentHashMap<Long, ReentrantLock> concurrentHashMap;
@@ -110,6 +115,18 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
                 // 写入数据库
                 boolean result = this.save(space);
                 ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
+
+                // 创建成功后 如果是团队空间  关联一条团队成员记录
+                if(SpaceTypeEnum.TEAM.getValue() == space.getSpaceType()) {
+                    SpaceUser spaceUser = new SpaceUser();
+                    spaceUser.setSpaceId(space.getId());
+                    spaceUser.setUserId(userId);
+                    spaceUser.setSpaceRole(SpaceRoleEnum.ADMIN.getValue());
+                    boolean save = spaceUserService.save(spaceUser);
+                    ThrowUtils.throwIf(!save, ErrorCode.OPERATION_ERROR,"创建团队成员记录失败");
+                }
+
+
                 // 返回新写入的数据 id
                 return space.getId();
             });
