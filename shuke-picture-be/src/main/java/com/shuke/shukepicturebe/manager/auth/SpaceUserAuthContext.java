@@ -32,9 +32,9 @@ public class SpaceUserAuthContext {
     private Long SpaceId;
 
     /**
-     * 用户Id
+     * 空间用户Id   SpaceUser表的主键
      */
-    private Long UserId;
+    private Long SpaceUserId;
 
     /**
      *  图片Id

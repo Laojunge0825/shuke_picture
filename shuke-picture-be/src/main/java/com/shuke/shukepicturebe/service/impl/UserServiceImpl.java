@@ -11,6 +11,7 @@ import com.shuke.shukepicturebe.common.ResultUtils;
 import com.shuke.shukepicturebe.exception.BusinessException;
 import com.shuke.shukepicturebe.exception.ErrorCode;
 import com.shuke.shukepicturebe.exception.ThrowUtils;
+import com.shuke.shukepicturebe.manager.auth.StpKit;
 import com.shuke.shukepicturebe.model.dto.user.UserAddDTO;
 import com.shuke.shukepicturebe.model.dto.user.UserQueryDTO;
 import com.shuke.shukepicturebe.model.dto.user.UserUpdateDTO;
@@ -140,8 +141,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             log.info("登录失败，用户账号被封禁  ");
             throw new BusinessException(ErrorCode.FORBIDDEN_ERROR, "用户账号被封禁");
         }
-        // 3. 记录用户的登录态
+        // 3. 记录用户的登录态到SpringSession
         request.getSession().setAttribute(USER_LOGIN_STATE, user);
+        // 4. 记录用户的登录态到SaToken 注意这个的过期时间和SpringSession的过期时间一致
+        StpKit.SPACE.login(user.getId());
+        StpKit.SPACE.getSession().set(USER_LOGIN_STATE, user);
         return this.getLoginUserVo(user);
     }
 
@@ -191,6 +195,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         }
         // 移除登录态
         request.getSession().removeAttribute(USER_LOGIN_STATE);
+        // 移除SaToken的登录态
+        StpKit.SPACE.logout(user.getId());
         return true;
     }
 
