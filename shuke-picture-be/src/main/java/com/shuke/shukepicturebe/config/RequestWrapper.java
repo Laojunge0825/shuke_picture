@@ -25,7 +25,7 @@ public class RequestWrapper extends HttpServletRequestWrapper {
         StringBuilder stringBuilder = new StringBuilder();
         try (InputStream inputStream = request.getInputStream(); BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream))) {
             char[] charBuffer = new char[128];
-            int bytesRead = -1;
+            int bytesRead;
             while ((bytesRead = bufferedReader.read(charBuffer)) > 0) {
                 stringBuilder.append(charBuffer, 0, bytesRead);
             }
@@ -63,10 +63,6 @@ public class RequestWrapper extends HttpServletRequestWrapper {
     @Override
     public BufferedReader getReader() throws IOException {
         return new BufferedReader(new InputStreamReader(this.getInputStream()));
-    }
-
-    public String getBody() {
-        return this.body;
     }
 
 }

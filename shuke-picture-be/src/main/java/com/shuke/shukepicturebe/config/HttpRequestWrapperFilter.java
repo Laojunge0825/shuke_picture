@@ -14,7 +14,7 @@ import java.io.IOException;
  * @author 舒克、舒克
  * @date 2025/4/3 09:44
  * @description
- * 请求包装过滤器
+ * 请求包装过滤器   防止重复读取请求体
  */
 @Order(1)
 @Component
