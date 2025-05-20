@@ -5,6 +5,7 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.shuke.shukepicturebe.manager.auth.model.SpaceUserAuthConfig;
 import com.shuke.shukepicturebe.manager.auth.model.SpaceUserRole;
+import org.springframework.context.annotation.Configuration;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,12 +15,13 @@ import java.util.List;
  * @date 2025/2/25 11:02
  * @description: 读取Json文件中的权限列表和角色列表
  */
+@Configuration
 public class SpaceUserAuthManager {
 
     private static final SpaceUserAuthConfig SPACE_USER_AUTH_CONFIG;
 
     static {
-        String json = ResourceUtil.readUtf8Str("biz/spaceUserAuthManage.json");
+        String json = ResourceUtil.readUtf8Str("biz/spaceUserAuthConfig.json");
         SPACE_USER_AUTH_CONFIG  = JSONUtil.toBean(json, SpaceUserAuthConfig.class);
     }
 
