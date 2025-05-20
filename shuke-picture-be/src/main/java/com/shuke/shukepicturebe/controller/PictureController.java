@@ -1,5 +1,6 @@
 package com.shuke.shukepicturebe.controller;
 
+import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -18,6 +19,8 @@ import com.shuke.shukepicturebe.constant.UserConstant;
 import com.shuke.shukepicturebe.exception.BusinessException;
 import com.shuke.shukepicturebe.exception.ErrorCode;
 import com.shuke.shukepicturebe.exception.ThrowUtils;
+import com.shuke.shukepicturebe.manager.auth.annotation.SaSpaceCheckPermission;
+import com.shuke.shukepicturebe.manager.auth.model.SpaceUserPermissionConstant;
 import com.shuke.shukepicturebe.model.dto.picture.*;
 import com.shuke.shukepicturebe.model.entity.Picture;
 import com.shuke.shukepicturebe.model.entity.Space;
@@ -83,6 +86,7 @@ public class PictureController {
      * 上传图片（可重新上传）
      */
     @PostMapping("/upload")
+    @SaSpaceCheckPermission(value = SpaceUserPermissionConstant.PICTURE_UPLOAD)
     public BaseResponse<PictureVO> uploadPicture(
             @RequestPart("file") MultipartFile multipartFile,
             PictureUploadDTO pictureUploadDTO,
@@ -99,6 +103,7 @@ public class PictureController {
      * @return
      */
     @PostMapping("/upload/url")
+    @SaSpaceCheckPermission(value = SpaceUserPermissionConstant.PICTURE_UPLOAD)
     public BaseResponse<PictureVO> uploadPictureByUrl(
             @RequestBody PictureUploadDTO pictureUploadDTO,
             HttpServletRequest request) {
@@ -129,6 +134,7 @@ public class PictureController {
      * 删除图片  
      */
     @PostMapping("/delete")
+    @SaSpaceCheckPermission(value = SpaceUserPermissionConstant.PICTURE_DELETE)
     public BaseResponse<Boolean> deletePicture(@RequestBody DeleteRequest deleteRequest, HttpServletRequest request) {
         ThrowUtils.throwIf(deleteRequest.getId() <= 0 , ErrorCode.PARAMS_ERROR);
         User loginUser = userService.getLoginUser(request);
@@ -311,6 +317,7 @@ public class PictureController {
      * 编辑图片（给用户使用）  
      */
     @PostMapping("/edit")
+    @SaSpaceCheckPermission(value = SpaceUserPermissionConstant.PICTURE_EDIT)
     public BaseResponse<Boolean> editPicture(@RequestBody PictureEditDTO pictureEditDTO, HttpServletRequest request) {
         if (pictureEditDTO == null || pictureEditDTO.getId() <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -327,6 +334,7 @@ public class PictureController {
      * @return
      */
     @PostMapping("/edit/batch")
+    @SaSpaceCheckPermission(value = SpaceUserPermissionConstant.PICTURE_EDIT)
     public BaseResponse<Boolean> editPictureByBatch(@RequestBody PictureEditByBatchDTO pictureEditByBatchDTO, HttpServletRequest request) {
         ThrowUtils.throwIf(pictureEditByBatchDTO == null, ErrorCode.PARAMS_ERROR);
         User loginUser = userService.getLoginUser(request);
@@ -401,6 +409,7 @@ public class PictureController {
      * 创建AI扩图任务
      */
     @PostMapping("/out_painting/create_task")
+    @SaSpaceCheckPermission(value = SpaceUserPermissionConstant.PICTURE_EDIT)
     public BaseResponse<CreateOutPaintingTaskResponse> createPictureOutPaintingTask(@RequestBody CreatePictureOutPaintingTaskDTO createPictureOutPaintingTaskDTO,
                                                                                     HttpServletRequest request){
         if(createPictureOutPaintingTaskDTO == null || createPictureOutPaintingTaskDTO.getPictureId() == null){
