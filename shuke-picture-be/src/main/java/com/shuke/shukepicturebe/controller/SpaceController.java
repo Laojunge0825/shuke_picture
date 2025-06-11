@@ -9,6 +9,7 @@ import com.shuke.shukepicturebe.constant.UserConstant;
 import com.shuke.shukepicturebe.exception.BusinessException;
 import com.shuke.shukepicturebe.exception.ErrorCode;
 import com.shuke.shukepicturebe.exception.ThrowUtils;
+import com.shuke.shukepicturebe.manager.auth.SpaceUserAuthManager;
 import com.shuke.shukepicturebe.model.dto.space.*;
 import com.shuke.shukepicturebe.model.entity.Space;
 import com.shuke.shukepicturebe.model.entity.User;
@@ -41,6 +42,9 @@ public class SpaceController {
 
     @Resource
     private UserService userService;
+
+    @Resource
+    private SpaceUserAuthManager  spaceUserAuthManager;
 
     /**
      * 新建空间
@@ -165,8 +169,8 @@ public class SpaceController {
         ThrowUtils.throwIf(space == null, ErrorCode.NOT_FOUND_ERROR);
         SpaceVO spaceVO = spaceService.getSpaceVO(space, request);
         User loginUser = userService.getLoginUser(request);
-//        List<String> permissionList = spaceUserAuthManager.getPermissionList(space, loginUser);
-//        spaceVO.setPermissionList(permissionList);
+        List<String> permissionList = spaceUserAuthManager.getPermissionList(space, loginUser);
+        spaceVO.setPermissionList(permissionList);
         // 获取封装类
         return ResultUtils.success(spaceVO);
     }
