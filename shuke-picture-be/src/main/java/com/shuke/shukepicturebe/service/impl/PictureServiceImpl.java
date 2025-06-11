@@ -535,7 +535,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
 
     @Override
     public void checkPictureAuth(User loginUser, Picture picture){
-        long spaceId = picture.getSpaceId();
+        Long spaceId = picture.getSpaceId();
         if(ObjUtil.isNull(spaceId)){
             ThrowUtils.throwIf( (ObjUtil.notEqual(picture.getSpaceId(),spaceId) && !userService.isAdmin(loginUser)) ,
                     ErrorCode.NOT_AUTH_ERROR,"仅本人和管理员可操作");
