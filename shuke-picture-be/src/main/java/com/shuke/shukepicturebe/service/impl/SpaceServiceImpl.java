@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.shuke.shukepicturebe.exception.BusinessException;
 import com.shuke.shukepicturebe.exception.ErrorCode;
 import com.shuke.shukepicturebe.exception.ThrowUtils;
+import com.shuke.shukepicturebe.manager.sharding.DynamicShardingManager;
 import com.shuke.shukepicturebe.mapper.SpaceMapper;
 import com.shuke.shukepicturebe.model.dto.space.SpaceAddDTO;
 import com.shuke.shukepicturebe.model.dto.space.SpaceQueryDTO;
@@ -53,6 +54,9 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
 
     @Resource
     private SpaceUserServiceImpl spaceUserService;
+
+    @Resource
+    private DynamicShardingManager dynamicShardingManager;
 
 //    @Resource
 //    private ConcurrentHashMap<Long, ReentrantLock> concurrentHashMap;
@@ -125,6 +129,8 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
                     boolean save = spaceUserService.save(spaceUser);
                     ThrowUtils.throwIf(!save, ErrorCode.OPERATION_ERROR,"创建团队成员记录失败");
                 }
+                // 创建分表
+                dynamicShardingManager.createSpacePictureTable( space);
 
 
                 // 返回新写入的数据 id

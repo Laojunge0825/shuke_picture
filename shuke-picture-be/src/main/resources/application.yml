@@ -13,6 +13,34 @@ spring:
     url: jdbc:mysql://localhost:3306/shuke_picture
     username: root
     password: root
+  # 分表配置
+  shardingsphere:
+      datasource:
+          shuke_picture:
+            url: jdbc:mysql://localhost:3306/shuke_picture
+            username: root
+            password: root
+            driver-class-name: com.mysql.cj.jdbc.Driver
+      rules:
+        sharding:
+            tables:
+                picture:
+                    actual-data-nodes: shuke_picture.picture # 指定逻辑表,实际数据节点
+                    # 这个地方 本来是shuke_picture.picture{0..2}  这样的形式，但现在是根据spaceId进行分表，而spaceId是Long 类型
+                    # 数字太大，并且不连续，所以这里先写死，自定义一个分表管理器，在项目初始化的时候指定分表范围
+                    table-strategy: # 分表策略
+                        standard:
+                            sharding-algorithm-name: picture_sharding_algorithm  # 指定分表算法
+                            sharding-column: space_id # 分表键
+            sharding-algorithms:
+                picture_sharding_algorithm:
+                  type: CLASS_BASED
+                  props:
+                    strategy: standard
+                    algorithm-class-name: com.shuke.shukepicturebe.manager.sharding.PictureShardingAlgorithm
+        props:
+          sql-show: true
+
   # 文件上传
   servlet:
     multipart:
