@@ -148,6 +148,12 @@
             <artifactId>commons-pool2</artifactId>
         </dependency>
 
+        <!-- 引入ShardingSphere   -->
+        <dependency>
+            <groupId>org.apache.shardingsphere</groupId>
+            <artifactId>shardingsphere-jdbc-core</artifactId>
+            <version>5.4.0</version>
+        </dependency>
 
 
 
