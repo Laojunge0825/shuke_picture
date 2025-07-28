@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Properties;
 
 /**
  * @author 舒克、舒克
@@ -19,12 +20,13 @@ public class PictureShardingAlgorithm implements StandardShardingAlgorithm<Long>
     /**
      * 逻辑分表
      * @param collection  所有支持的表的集合
-     * @param preciseShardingValue 逻辑分表键值
+     * @param preciseShardingValue 逻辑分表键值  当前为 spaceId
      * @return  返回查询的表名
      */
     @Override
     public String doSharding(Collection<String> collection, PreciseShardingValue<Long> preciseShardingValue) {
         Long spaceId = preciseShardingValue.getValue();
+        // 逻辑表  根据这张表进行分表
         String logicTableName = preciseShardingValue.getLogicTableName();
         // 当spaceId 为空时查询所有的表
         if(spaceId == null){
@@ -43,5 +45,15 @@ public class PictureShardingAlgorithm implements StandardShardingAlgorithm<Long>
     @Override
     public Collection<String> doSharding(Collection<String> collection, RangeShardingValue<Long> rangeShardingValue) {
         return new ArrayList<>();
+    }
+
+    @Override
+    public Properties getProps() {
+        return null;
+    }
+
+    @Override
+    public void init(Properties properties) {
+
     }
 }

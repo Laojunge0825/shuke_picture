@@ -24,6 +24,7 @@ import com.shuke.shukepicturebe.model.vo.UserVO;
 import com.shuke.shukepicturebe.service.SpaceService;
 import com.shuke.shukepicturebe.service.UserService;
 import org.springframework.beans.BeanUtils;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -56,6 +57,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
     private SpaceUserServiceImpl spaceUserService;
 
     @Resource
+    @Lazy
     private DynamicShardingManager dynamicShardingManager;
 
 //    @Resource
@@ -129,7 +131,8 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
                     boolean save = spaceUserService.save(spaceUser);
                     ThrowUtils.throwIf(!save, ErrorCode.OPERATION_ERROR,"创建团队成员记录失败");
                 }
-                // 创建分表
+
+                // 在创建新的团队空间时候 创建分表
                 dynamicShardingManager.createSpacePictureTable( space);
 
 

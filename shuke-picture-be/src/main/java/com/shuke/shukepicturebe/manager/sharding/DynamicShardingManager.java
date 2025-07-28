@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 /**
  * @author 舒克、舒克
  * @date 2025/6/18 15:02
- * @description  动态分表管理器
+ * @description  动态分表管理器  在首次加载时 和 创建新的旗舰版空间时 获取 所有旗舰版空间的spaceId
  */
 @Component
 @Slf4j
@@ -47,7 +47,7 @@ public class DynamicShardingManager {
     /**
      * 初始化动态分表配置
      */
-    @PostConstruct
+//    @PostConstruct
     public void initialize() {
         log.info("初始化动态分表配置...");
         updateShardingTableNodes();
@@ -84,6 +84,7 @@ public class DynamicShardingManager {
                 .collect(Collectors.joining(","));
         log.info("动态分表 actual-data-nodes 配置: {}", newActualDataNodes);
 
+        // 获取到 ShardingSphere 的 ContextManager 上下文
         ContextManager contextManager = getContextManager();
         ShardingSphereRuleMetaData ruleMetaData = contextManager.getMetaDataContexts()
                 .getMetaData()
@@ -97,6 +98,7 @@ public class DynamicShardingManager {
             List<ShardingTableRuleConfiguration> updatedRules = ruleConfig.getTables()
                     .stream()
                     .map(oldTableRule -> {
+                        // 找到 picture 表
                         if (LOGIC_TABLE_NAME.equals(oldTableRule.getLogicTable())) {
                             // 再这里修改 actual-data-nodes
                             ShardingTableRuleConfiguration newTableRuleConfig = new ShardingTableRuleConfiguration(LOGIC_TABLE_NAME, newActualDataNodes);
@@ -111,7 +113,7 @@ public class DynamicShardingManager {
                     .collect(Collectors.toList());
             ruleConfig.setTables(updatedRules);
             contextManager.alterRuleConfiguration(DATABASE_NAME, Collections.singleton(ruleConfig));
-            contextManager.reloadDatabaseMetaData(DATABASE_NAME);
+            contextManager.reloadDatabase(DATABASE_NAME);
             log.info("动态分表规则更新成功！");
         } else {
             log.error("未找到 ShardingSphere 的分片规则配置，动态分表更新失败。");
@@ -119,9 +121,10 @@ public class DynamicShardingManager {
     }
 
     /**
-     * 获取 ShardingSphere ContextManager
+     * 获取 ShardingSphere ContextManager 上下文
      */
     private ContextManager getContextManager() {
+        log.info("获取数据源" + dataSource.getClass().getName());
         try (ShardingSphereConnection connection = dataSource.getConnection().unwrap(ShardingSphereConnection.class)) {
             return connection.getContextManager();
         } catch (SQLException e) {
