@@ -2,10 +2,13 @@
   <div id="spaceDetailPage">
     <!-- 空间信息 -->
     <a-flex justify="space-between">
-      <h2>{{ space.spaceName }}(私人空间)</h2>
+      <h2>{{ space.spaceName }}（{{ SPACE_TYPE_MAP[space.spaceType] }}）</h2>
       <a-space>
         <a-button type="primary" :href="`/add_picture?spaceId=${id}`" target="_blank">
           + 创建图片
+        </a-button>
+        <a-button type="primary" :href="`/spaceUserManage/${id}`" :icon="h(TeamOutlined)" target="_blank">
+          成员管理
         </a-button>
         <a-button
           type="primary"
@@ -62,7 +65,7 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { ref, onMounted, computed, reactive, h } from 'vue'
+import { ref, onMounted, computed, reactive, h, watch } from 'vue'
 import { getSpaceVoByIdUsingGet, deleteSpaceUsingPost } from '@/api/spaceController.ts'
 import {
   listPictureVoByPageUsingPost,
@@ -76,8 +79,9 @@ import { ColorPicker } from 'vue3-colorpicker'
 import 'vue3-colorpicker/style.css'
 import PictureList from '@/components/PictureList.vue'
 import PictureSearchForm from '@/components/PictureSearchForm.vue'
-import { EditOutlined, BarChartOutlined } from '@ant-design/icons-vue'
+import { EditOutlined, BarChartOutlined , TeamOutlined} from '@ant-design/icons-vue'
 import BatchEditPictureModal from '@/components/BatchEditPictureModal.vue'
+import { SPACE_TYPE_MAP } from '../../constants/space.ts'
 
 const props = defineProps<{
   id: string | number
@@ -202,6 +206,16 @@ const onColorChange = async (color: string) => {
     message.error('获取数据失败，' + res.data.message)
   }
 }
+
+// 切换空间的时候监听空间id的变换
+watch(
+  () => props.id,
+  () => {
+    fetchSpaceDetail()
+    fetchData()
+  },
+)
+
 </script>
 <style scoped>
 #spaceDetailPage {

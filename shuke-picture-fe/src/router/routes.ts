@@ -14,6 +14,7 @@ import MySpacePage from '@/pages/space/MySpacePage.vue'
 import SpaceDetailPage from '@/pages/space/SpaceDetailPage.vue'
 import SearchPicturePage from '@/pages/picture/SearchPicturePage.vue'
 import SpaceAnalyzePage from '@/pages/SpaceAnalyzePage.vue'
+import SpaceUserManagePage from '@/pages/admin/SpaceUserManagePage.vue'
 
 export const routes = [
   {
@@ -74,6 +75,12 @@ export const routes = [
     path: '/admin/spaceManage',
     name: '空间管理',
     component: SpaceManagePage,
+  },
+  {
+    path: '/spaceUserManage/:id',
+    name: '空间用户管理',
+    component: SpaceUserManagePage,
+    props: true
   },
   {
     path: '/add_space',
