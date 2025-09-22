@@ -4,13 +4,14 @@
     <a-flex justify="space-between">
       <h2>{{ space.spaceName }}（{{ SPACE_TYPE_MAP[space.spaceType] }}）</h2>
       <a-space>
-        <a-button type="primary" :href="`/add_picture?spaceId=${id}`" target="_blank">
+        <a-button v-if="canUploadPicture" type="primary" :href="`/add_picture?spaceId=${id}`" target="_blank">
           + 创建图片
         </a-button>
-        <a-button type="primary" :href="`/spaceUserManage/${id}`" :icon="h(TeamOutlined)" target="_blank">
+        <a-button v-if="canManageSpaceUser" type="primary" :href="`/spaceUserManage/${id}`" :icon="h(TeamOutlined)" target="_blank">
           成员管理
         </a-button>
         <a-button
+          v-if="canManageSpaceUser"
           type="primary"
           ghost
           :icon="h(BarChartOutlined)"
@@ -44,7 +45,10 @@
 
     <div style="margin-bottom: 16px"></div>
     <!-- 图片列表 -->
-    <PictureList :dataList="dataList" :loading="loading" :showOp="true" :onReload="fetchData" />
+    <PictureList :dataList="dataList" :loading="loading" :showOp="true"
+                 :canEdit = "canEditPicture"
+                 :canDelete="canDeletePicture"
+                 :onReload="fetchData" />
 
     <!-- 批量修改 -->
     <BatchEditPictureModal
@@ -81,7 +85,7 @@ import PictureList from '@/components/PictureList.vue'
 import PictureSearchForm from '@/components/PictureSearchForm.vue'
 import { EditOutlined, BarChartOutlined , TeamOutlined} from '@ant-design/icons-vue'
 import BatchEditPictureModal from '@/components/BatchEditPictureModal.vue'
-import { SPACE_TYPE_MAP } from '../../constants/space.ts'
+import { SPACE_PERMISSION_ENUM, SPACE_TYPE_ENUM, SPACE_TYPE_MAP } from '../../constants/space.ts'
 
 const props = defineProps<{
   id: string | number
@@ -89,7 +93,20 @@ const props = defineProps<{
 
 const space = ref<API.SpaceVO>({})
 
-const router = useRouter()
+// 定义权限检查
+// 通用权限检查函数
+function createPermissionChecker(permission: string) {
+  return computed(() => {
+    return (space.value.permissionList ?? []).includes(permission)
+  })
+}
+
+// 定义权限检查
+const canManageSpaceUser = createPermissionChecker(SPACE_PERMISSION_ENUM.SPACE_USER_MANAGE)
+const canUploadPicture = createPermissionChecker(SPACE_PERMISSION_ENUM.PICTURE_UPLOAD)
+const canEditPicture = createPermissionChecker(SPACE_PERMISSION_ENUM.PICTURE_EDIT)
+const canDeletePicture = createPermissionChecker(SPACE_PERMISSION_ENUM.PICTURE_DELETE)
+
 
 // 获取空间详情
 const fetchSpaceDetail = async () => {

@@ -42,7 +42,7 @@
                 搜索
               </a-space>
               <a-space @click="(e) => doEdit(picture, e)">
-                <EditOutlined key="edit" />
+                <EditOutlined v-if="canEdit" key="edit" />
                 编辑
               </a-space>
               <a-space @click="(e) => doShare(picture, e)">
@@ -50,7 +50,7 @@
                 分享
               </a-space>
               <a-space @click="(e) => doDelete(picture, e)">
-                <DeleteOutlined key="delete" />
+                <DeleteOutlined v-if="canDelete" key="delete" />
                 删除
               </a-space>
             </template>
@@ -77,6 +77,8 @@ interface Props {
   dataList?: API.PictureVO[]
   loading?: boolean
   showOp?: boolean
+  canEdit?: boolean
+  canDelete?: boolean
   onReload?: () => {}
 }
 
